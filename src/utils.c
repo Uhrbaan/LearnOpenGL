@@ -18,3 +18,27 @@ int msleep(long msec) // sleep for msec miliseconds
 
     return res;
 }
+
+const char *FILE2str(const char *file_path)
+{
+    char *buffer = NULL;
+    long file_size=0;
+    FILE *f = NULL;
+
+    f = fopen(file_path, "r");
+    if (f)
+    {
+        fseek(f, 0, SEEK_END);
+        file_size = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        buffer = malloc(file_size+1);
+        if (buffer)
+        {
+            fread(buffer, 1, file_size, f);
+            buffer[file_size] = '\0'; // sinon pas de EOF
+        }
+        fclose(f);
+        return buffer;
+    }
+    return NULL;
+}

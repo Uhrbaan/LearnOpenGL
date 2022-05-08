@@ -1,6 +1,8 @@
 #ifndef gl_h
 #define gl_h
 
+#include <stdarg.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -14,5 +16,11 @@ int initGLAD(GLint x, GLint y, GLsizei width, GLsizei height);
 
 // fonction that processes all the inputs
 void processInput(GLFWwindow *window);
+
+// crée un shader depuis un fichier GLSL
+unsigned int FILE2shader(const char *file_path, GLenum shader_type);
+
+// crée un shader program à partir de n shaders
+unsigned int linkShaders2program(int n, ...);
 
 #endif

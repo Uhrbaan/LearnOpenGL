@@ -11,4 +11,6 @@
 // sleeps for msec miliseconds
 int msleep(int msec);
 
+const char *FILE2str(const char *file_path);
+
 #endif
