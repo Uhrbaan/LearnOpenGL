@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
     if (!shader_program)
         return 1;
 // </shaders>
-
+// <triangle>
     float vertices[] = {   
         /* points nécessaires pour dessiner le triangle
          * NOTE: (0, 0) est au centre de l'écran, l'axe y est positif vers le
@@ -65,6 +65,8 @@ int main(int argc, char const *argv[])
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+// </triangle>
+
 
     while(!glfwWindowShouldClose(window))
     {
