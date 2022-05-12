@@ -28,45 +28,49 @@ int main(int argc, char const *argv[])
     if (!shader_program)
         return 1;
 // </shaders>
-// <triangle>
+
+// <rectangle>
     float vertices[] = {   
-        /* points nécessaires pour dessiner le triangle
+        /* points nécessaires pour dessiner 2 triangles, les overlaps sont omis
          * NOTE: (0, 0) est au centre de l'écran, l'axe y est positif vers le
          * haut */
-         -0.5f, -0.5f, 0.0f,
-          0.5f, -0.5f, 0.0f,
-          0.0f,  0.5f, 0.0f
+        0.5f, 0.5f, 0.0f,   // top right
+        0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f   // top left
+    };
+
+    unsigned int indices[] = {
+        /* indique les vertices que chaque triangle doit utiliser */
+        0, 1, 3,            // premier triangle
+        1, 2, 3             // deuxième triangle
     };
 
     // generating objects
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    // 1. bind Vertex Array Object
-    glBindVertexArray(VAO);
-    // 2. copy our vertices array in a buffer for OpenGL to use
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 3. then set our vertex attributes pointers
-    /* we need to tell OpenGL how to interpret the vertex data
-     * Arguments:
-     *  1. sets the loacation of the vertex attribute to 0 
-     *     └> layout (location=0)
-     *     va donc modifier les vertex à la position 0
-     *  2. spécifie la taille du vertex. comme c'est un vec3 la taille est de 3
-     *  3. le type de data passé dans le vecteur (un vec* est composé de float)
-     *  4. if we want to normalize the data
-     *     └> modifierait les uint à 0, sint à -1, float à 1
-     *  5. appelé 'stride', c'est le nombre de byte qui sépare chaque vertex
-     *  6. offest where the data begins, needs a (void*) cast */
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
-                          (void*)0);
+    glBindVertexArray(VAO); // binding vertex array object to keep track of all 
+                            // the context changes
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);             // Binding vertices
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), // allocating buffer
+                 vertices, GL_STATIC_DRAW);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); /* element array buffer, to
+                                                 * minimize space usage by not
+                                                 * repeating same vertices and
+                                                 * replacing them w/ indecies */
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), 
+                 indices, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,     // vertex attribute 
+                          3*sizeof(float), (void*)0);   // configuration
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-// </triangle>
 
+
+// </rectangle>
 
     while(!glfwWindowShouldClose(window))
     {
@@ -79,11 +83,11 @@ int main(int argc, char const *argv[])
         // possible bit buffers to set:
         //  GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT.
         glUseProgram(shader_program);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3); /* glDrawArrays(primitive_shape, 
-                                           * start_index, n_vertices to draw) */
-        // glBindVertexArray(0); // pas nécessaire de l'appeler à chaque fois
-        // swapping buffers
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES,    // shape 
+                       6,               // number of indices
+                       GL_UNSIGNED_INT, // type of indices
+                       0);              // offset
         glfwSwapBuffers(window);
         glfwPollEvents();
         msleep(16);
