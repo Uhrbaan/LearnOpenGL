@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "gl.h"
 #include "utils.h"
@@ -117,4 +118,100 @@ unsigned int linkShaders2program(int n, ...)
     va_end(valist);
 
     return shader_program;
+}
+
+unsigned int setUniform(unsigned int shader_program, int type,
+                        const char *name, ...)
+{
+    va_list valist;
+    int uni_location = glGetUniformLocation(shader_program, name);
+    switch (type)
+    {
+        // floats & doubles -> because va_arg promotes to float to double
+        case GL_FLOAT: case GL_DOUBLE:
+            va_start(valist, name);
+            glUniform1f(uni_location, va_arg(valist, double));
+            break;
+
+        case GL_FLOAT_VEC2: case GL_DOUBLE_VEC2:
+            va_start(valist, name);
+            glUniform2f(uni_location, va_arg(valist, double), 
+                                      va_arg(valist, double));
+            break;
+        
+        case GL_FLOAT_VEC3: case GL_DOUBLE_VEC3:
+            va_start(valist, name);
+            glUniform3f(uni_location, va_arg(valist, double), 
+                                      va_arg(valist, double), 
+                                      va_arg(valist, double));
+            break;
+
+        case GL_FLOAT_VEC4: case GL_DOUBLE_VEC4:
+            va_start(valist, name);
+            glUniform4f(uni_location, va_arg(valist, double), 
+                                      va_arg(valist, double), 
+                                      va_arg(valist, double),
+                                      va_arg(valist, double));
+            break;
+
+        // ints & bool
+        case GL_INT: case GL_BOOL:
+            va_start(valist, name);
+            glUniform1i(uni_location, va_arg(valist, int));
+            break;
+
+        case GL_INT_VEC2: case GL_BOOL_VEC2:
+            va_start(valist, name);
+            glUniform2i(uni_location, va_arg(valist, int),
+                                      va_arg(valist, int));
+            break;
+        
+        case GL_INT_VEC3: case GL_BOOL_VEC3:
+            va_start(valist, name);
+            glUniform3i(uni_location, va_arg(valist, int), 
+                                      va_arg(valist, int), 
+                                      va_arg(valist, int));
+            break;
+
+        case GL_INT_VEC4: case GL_BOOL_VEC4:
+            va_start(valist, name);
+            printf("%d, %d, %d, %d\n", va_arg(valist, int),
+                                       va_arg(valist, int),
+                                       va_arg(valist, int),
+                                       va_arg(valist, int));
+
+            break;
+
+        // uint
+        case GL_UNSIGNED_INT:
+            va_start(valist, name);
+            glUniform1ui(uni_location, va_arg(valist, unsigned int));
+            break;
+
+        case GL_UNSIGNED_INT_VEC2:
+            va_start(valist, name);
+            glUniform2ui(uni_location, va_arg(valist, unsigned int),
+                                      va_arg(valist, unsigned int));
+            break;
+        
+        case GL_UNSIGNED_INT_VEC3:
+            va_start(valist, name);
+            glUniform3ui(uni_location, va_arg(valist, unsigned int), 
+                                      va_arg(valist, unsigned int), 
+                                      va_arg(valist, unsigned int));
+            break;
+
+        case GL_UNSIGNED_INT_VEC4:
+            va_start(valist, name);
+            glUniform4ui(uni_location, va_arg(valist, unsigned int), 
+                                      va_arg(valist, unsigned int), 
+                                      va_arg(valist, unsigned int),
+                                      va_arg(valist, unsigned int));
+            break;
+        
+        default:
+            break;
+    }
+    va_end(valist);
+    return uni_location;
 }

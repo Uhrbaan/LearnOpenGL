@@ -1,10 +1,10 @@
 #version 460 core
-out vec4 FragColor; // 'out' named FragColor
-in vec4 vertex_color; // input from vert_triangle.glsl->vertex_color
+out vec4 FragColor;
+in vec3 ourColor;
 
-uniform vec4 add_color; // global value to openGL
+uniform vec4 add_color;
 
 void main()
 {
-    FragColor = vertex_color + add_color;
+    FragColor = vec4(ourColor, 1.0) + add_color;
 }

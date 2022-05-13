@@ -23,4 +23,8 @@ unsigned int FILE2shader(const char *file_path, GLenum shader_type);
 // crée un shader program à partir de n shaders
 unsigned int linkShaders2program(int n, ...);
 
+// set uniform (without bool, use int)
+unsigned int setUniform(unsigned int shader_program, int type,
+                        const char *name, ...);
+
 #endif

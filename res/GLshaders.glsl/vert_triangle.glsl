@@ -1,10 +1,11 @@
 #version 460 core
-layout (location = 0) in vec3 aPos; // attribute position 0
-// let the vertex shader decide the color of the fragment shader
-out vec4 vertex_color; // color output the passed to fragment shader
+layout (location = 0) in vec3 aPos; // position has attribute location 0
+layout (location = 1) in vec3 aColor; // color has attribute location 1
+
+out vec3 ourColor;
 
 void main()
 {
-    gl_Position = vec4(aPos, 1.0); // give a vec3 to vec 4 for position
-    vertex_color = vec4(0.6, 0.0, 0.0, 1.0);
+    gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor; // sets frag color from vertex data  
 }
