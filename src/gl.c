@@ -3,6 +3,7 @@
 
 #include "gl.h"
 #include "utils.h"
+#include "stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -243,4 +244,29 @@ unsigned int FILE2texture(const char *img_path, GLenum texture_type)
                  );
     glGenerateMipmap(texture_type);
     stbi_image_free(data); // free image data from memory
+    return texture;
+}
+
+void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...)
+{
+    /* modifie l'apparence de la texture si les coordonnées ne map pas l'objet
+     * options : GL_REPEAT (défaut), GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, 
+     *           GL_CLAMP_TO_BORDER ||  if clamp to edge is chosen:
+     *  float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+     *  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
+    /* texture filtering: ce que doit faire opengl quand les texels n'alignent
+     * pas les pixels : GL_NEAREST, GL_LINEAR 
+     * can be set on magnifying (GL_TEXTURE_MAG_FILTER) or minifying
+     * (GL_TEXTURE_MIN_FILTER) operations */
+    /* to prevent memory wastage, when small or far objects are rendered, smaler
+     * textures are used (mipmaps). can be generated through glGenerateMipmaps
+     * p. 58 */
+    va_list valist;
+    glBindTexture(texture_type, texture);
+    va_start(valist, texture_type);
+    for (int i=0; i<n; i++)
+    {
+        glTexParameteri(texture_type, va_arg(valist, GLenum), 
+                        va_arg(valist, GLenum));
+    }
 }

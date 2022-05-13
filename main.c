@@ -8,7 +8,6 @@
 
 #include "src/gl.h"
 #include "src/utils.h"
-#include "src/stb_image.h"
 
 int main(int argc, char const *argv[])
 {
@@ -24,63 +23,59 @@ int main(int argc, char const *argv[])
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttributes);
     printf("Max n of vertex attrib: %d\n", nAttributes); // output: 16
 
-    unsigned int shader_prgrm, VAO, VBO;
+    unsigned int shader_prgrm, VAO, VBO, EBO;
     shader_prgrm = 
     linkShaders2program(2, 
-                        FILE2shader("res/GLshaders.glsl/vert_triangle.glsl",
+                        FILE2shader("res/GLshaders.glsl/container.vs",
                                     GL_VERTEX_SHADER),
-                        FILE2shader("res/GLshaders.glsl/frag_triangle.glsl",
+                        FILE2shader("res/GLshaders.glsl/container.fs",
                                     GL_FRAGMENT_SHADER)); 
     
 
     float vertices[] = {
-        // vertices
-         0.0f,  0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f
+        // positions        // colors         // texture coords
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
     };
 
-    float texture_coo[] = { // x&y entre 0..1, 0|0 en bas à gauche
-        0.0f, 0.0f, // en bas gauche
-        1.0f, 0.0f, // en bas droite
-        0.5f, 1.0f  // centre haut
+    float indices[] = {
+        0, 1, 2,
+        1, 2, 3
     };
 
     unsigned int texture = FILE2texture("res/textures/container.jpg", 
                                         GL_TEXTURE_2D);
 
-    /* modifie l'apparence de la texture si les coordonnées ne map pas l'objet
-     * options : GL_REPEAT (défaut), GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, 
-     *           GL_CLAMP_TO_BORDER ||  if clamp to edge is chosen:
-     *  float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
-     *  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-
-    /* texture filtering: ce que doit faire opengl quand les texels n'alignent
-     * pas les pixels : GL_NEAREST, GL_LINEAR 
-     * can be set on magnifying (GL_TEXTURE_MAG_FILTER) or minifying
-     * (GL_TEXTURE_MIN_FILTER) operations */
-    /* to prevent memory wastage, when small or far objects are rendered, smaler
-     * textures are used (mipmaps). can be generated through glGenerateMipmaps
-     * p. 58 */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-                    GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    
+    setTextureParam(4, texture, GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT,
+                    GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT,
+                    GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // generate objects
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // vertex array attributes
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // colors
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), 
+                          (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    // texture
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float),
+                          (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     while(!glfwWindowShouldClose(window))
     {
@@ -93,9 +88,10 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         //reder shapes
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
         glUseProgram(shader_prgrm);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // 
         glfwSwapBuffers(window);
