@@ -8,6 +8,7 @@
 
 #include "src/gl.h"
 #include "src/utils.h"
+#include "src/stb_image.h"
 
 int main(int argc, char const *argv[])
 {
@@ -32,13 +33,44 @@ int main(int argc, char const *argv[])
                                     GL_FRAGMENT_SHADER)); 
     
 
-    float vertices[] = { // with color data
-        // vertices         // colors
-         0.0f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+    float vertices[] = {
+        // vertices
+         0.0f,  0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f
     };
 
+    float texture_coo[] = { // x&y entre 0..1, 0|0 en bas à gauche
+        0.0f, 0.0f, // en bas gauche
+        1.0f, 0.0f, // en bas droite
+        0.5f, 1.0f  // centre haut
+    };
+
+    unsigned int texture = FILE2texture("res/textures/container.jpg", 
+                                        GL_TEXTURE_2D);
+
+    /* modifie l'apparence de la texture si les coordonnées ne map pas l'objet
+     * options : GL_REPEAT (défaut), GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, 
+     *           GL_CLAMP_TO_BORDER ||  if clamp to edge is chosen:
+     *  float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+     *  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+    /* texture filtering: ce que doit faire opengl quand les texels n'alignent
+     * pas les pixels : GL_NEAREST, GL_LINEAR 
+     * can be set on magnifying (GL_TEXTURE_MAG_FILTER) or minifying
+     * (GL_TEXTURE_MIN_FILTER) operations */
+    /* to prevent memory wastage, when small or far objects are rendered, smaler
+     * textures are used (mipmaps). can be generated through glGenerateMipmaps
+     * p. 58 */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                    GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    
+
+    // generate objects
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
@@ -47,20 +79,8 @@ int main(int argc, char const *argv[])
 
     // vertex array attributes
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float),
-                          (void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
-/*  glVertexAttribPointer(attribute position, number of elements, element type, 
-                          normalize, stride (bytes till nex first element),
-                          (void*)(offset)) */
-
-    // setup to change brightness through time
-    float time_value, brightness;
-    // int vertex_color_location = glGetUniformLocation(shader_prgrm, "add_color");
 
     while(!glfwWindowShouldClose(window))
     {
@@ -69,21 +89,12 @@ int main(int argc, char const *argv[])
 
         // rendering
         // clear screen
-        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
-        // process
-        time_value = glfwGetTime();
-        brightness = (sin(time_value) / 2.0f);
-
 
         //reder shapes
         glBindVertexArray(VAO);
         glUseProgram(shader_prgrm);
-        // glUniform4f(vertex_color_location, brightness, brightness, brightness,
-        //             brightness);
-        setUniform(shader_prgrm, GL_FLOAT_VEC4, "add_color", brightness, 
-                   brightness, brightness, brightness);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // 
