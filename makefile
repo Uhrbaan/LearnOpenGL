@@ -2,7 +2,7 @@ PROGRAM=bin/main
 CC=gcc
 
 CFLAGS=-g -Wall
-LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
 LDLIBS =
 
 C_FILES := $(wildcard src/*.c)
