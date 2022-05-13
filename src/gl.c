@@ -217,12 +217,13 @@ unsigned int setUniform(unsigned int shader_program, int type,
     return uni_location;
 }
 
-unsigned int FILE2texture(const char *img_path, GLenum texture_type)
+unsigned int FILE2texture(const char *img_path, GLenum color_format, 
+                          GLenum texture_type)
 {
+    stbi_set_flip_vertically_on_load(true);
     // loading texture
     int w, h, n_channels;
-    unsigned char *data = stbi_load("res/textures/container.jpg",
-                                    &w, &h, &n_channels, 0);
+    unsigned char *data = stbi_load(img_path, &w, &h, &n_channels, 0);
     if (!data)
     {
         printf(TERM_COL_ERROR("error") ": Failed to load texture\n");
@@ -232,13 +233,13 @@ unsigned int FILE2texture(const char *img_path, GLenum texture_type)
     glGenTextures(1, &texture);
     glBindTexture(texture_type, texture);
     // loading image in texture
-    glTexImage2D(texture_type,     // modifying current boudn TEXTURE2D
+    glTexImage2D(texture_type,      // modifying current boudn TEXTURE2D
                  0,                 // level of mipmap if made manualy
-                 GL_RGB,            // format in which the texture is stored
+                 color_format,            // format in which the texture is stored
                  w,                 // width
                  h,                 // height
                  0,                 // always 0 (because legacy stuff)
-                 GL_RGB,            // format & data type of the texture 
+                 color_format,      // format & data type of the texture 
                  GL_UNSIGNED_BYTE,  // └> rgb / bytes (char)
                  data               // image data
                  );

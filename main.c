@@ -40,12 +40,14 @@ int main(int argc, char const *argv[])
         -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
     };
 
-    float indices[] = {
-        0, 1, 2,
+    unsigned int indices[] = {
+        0, 1, 3,
         1, 2, 3
     };
 
-    unsigned int texture = FILE2texture("res/textures/container.jpg", 
+    unsigned int texture = FILE2texture("res/textures/jade.jpg", GL_RGB,
+                                        GL_TEXTURE_2D);
+    unsigned int texture2 = FILE2texture("res/textures/awesomeface.png", GL_RGBA,
                                         GL_TEXTURE_2D);
 
     setTextureParam(4, texture, GL_TEXTURE_2D,
@@ -77,6 +79,12 @@ int main(int argc, char const *argv[])
                           (void*)(6*sizeof(float)));
     glEnableVertexAttribArray(2);
 
+    float time, br;
+    glUseProgram(shader_prgrm);
+    // telling openGL which sampler belongs to which texture
+    setUniform(shader_prgrm, GL_INT, "texture1", 0);
+    setUniform(shader_prgrm, GL_INT, "texture2", 1);
+
     while(!glfwWindowShouldClose(window))
     {
         // input
@@ -87,8 +95,17 @@ int main(int argc, char const *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // process
+        time = glfwGetTime();
+        br = sin(time)/6 + 0.3f;
+        setUniform(shader_prgrm, GL_FLOAT_VEC3, "brightness", br, br, br);
+
         //reder shapes
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture); // first texture
+        glActiveTexture(GL_TEXTURE0+1);
+        glBindTexture(GL_TEXTURE_2D, texture2); // second texture
+        
         glBindVertexArray(VAO);
         glUseProgram(shader_prgrm);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
