@@ -45,7 +45,7 @@ int main(int argc, char const *argv[])
         1, 2, 3
     };
 
-    unsigned int texture = FILE2texture("res/textures/jade.jpg", GL_RGB,
+    unsigned int texture = FILE2texture("res/textures/container.jpg", GL_RGB,
                                         GL_TEXTURE_2D);
     unsigned int texture2 = FILE2texture("res/textures/awesomeface.png", GL_RGBA,
                                         GL_TEXTURE_2D);
