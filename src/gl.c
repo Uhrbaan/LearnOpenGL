@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #include "gl.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
