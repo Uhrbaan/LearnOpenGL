@@ -14,100 +14,117 @@
 
 int main(int argc, char const *argv[])
 {
-//     GLFWwindow *window=NULL;
-//     if (initGLFW(&window, 800, 600, "Learn Opengl", NULL, NULL))
-//         return 1;
+    GLFWwindow *window=NULL;
+    if (initGLFW(&window, 800, 800, "Learn Opengl", NULL, NULL))
+        return 1;
     
-//     initGLAD(0, 0, 800, 600);
+    initGLAD(0, 0, 800, 800);
 
-//     // shaders
-//     // OpenGL guranties at least 16 4-component vertex attrbutes
-//     int nAttributes;
-//     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttributes);
-//     printf("Max n of vertex attrib: %d\n", nAttributes); // output: 16
+    // <shaders>
+    unsigned int shader_prgrm, VAO, VBO, EBO;
+    shader_prgrm = glCreateProgram();
+    if (linkShaders(shader_prgrm, 2, 
+                    FILE2shader("res/GLshaders.glsl/vert_triangle.glsl",
+                                GL_VERTEX_SHADER), 
+                    FILE2shader("res/GLshaders.glsl/frag_triangle.glsl", 
+                                GL_FRAGMENT_SHADER)))
+        return 1;
 
-//     unsigned int shader_prgrm, VAO, VBO;
-//     shader_prgrm = 
-//     linkShaders2program(2, 
-//                         FILE2shader("res/GLshaders.glsl/vert_triangle.glsl",
-//                                     GL_VERTEX_SHADER),
-//                         FILE2shader("res/GLshaders.glsl/frag_triangle.glsl",
-//                                     GL_FRAGMENT_SHADER)); 
+    float vertices[] = {
+        // vertices         // colors         // texture coo
+        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top left
+         0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top right
+         0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // botom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f    // botom left
+    };
+
+    unsigned int indices[] = {
+        1, 2, 4,
+        2, 3, 4
+    };
+
+    // genrating buffers
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+
+    glBindVertexArray(VAO); // binding vertex array -> keeps track of vertices
+
+    // vertex buffer object
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
+
+    // element buffer object
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
+
+    // vertex array attributes
+    // position attribute   -> repeats every 8 floats 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
     
+    // color attribute      -> repeats every 8 floats and starts wit 3 offset
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float),
+                          (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
-//     float vertices[] = { // with color data
-//         // vertices         // colors
-//          0.0f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-//          0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-//         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
-//     };
-
-//     glGenVertexArrays(1, &VAO);
-//     glGenBuffers(1, &VBO);
-//     glBindVertexArray(VAO);
-//     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-//     // vertex array attributes
-//     // position attribute
-//     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
-//     glEnableVertexAttribArray(0);
+    // texture coordinates  -> repeats every 8 floats and starts at the 6th
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), 
+                          (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
     
-//     // color attribute
-//     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float),
-//                           (void*)(3*sizeof(float)));
-//     glEnableVertexAttribArray(1);
-// /*  glVertexAttribPointer(attribute position, number of elements, element type, 
-//                           normalize, stride (bytes till nex first element),
-//                           (void*)(offset)) */
-
-//     // setup to change brightness through time
-//     float time_value, brightness;
-//     // int vertex_color_location = glGetUniformLocation(shader_prgrm, "add_color");
-
-    vec4 v = {1.0f, 0.0f, 0.0f, 1.0f};
-    mat4 m = mat4_identity_matrix;
-    // modifying the matrix m to do following transformations
-    glm_rotate(m, glm_rad(90.0f), (vec3){0.0f, 0.0f, 1.0f});
-    glm_scale(m, (vec3){2.0f, 2.0f, 2.0f});
-    glm_translate(m, (vec3){1.0f, 1.0f, 1.0f});
-
-    glm_mat4_mulv(m, v, v);
-    printf("vec: (%f|%f|%f)\n", v[0], v[1], v[2]);
+    // setup to modify render over time
+    float time_value, brightness;
+    unsigned int transform_uniform;
+    mat4 m = GLM_MAT4_IDENTITY_INIT;
     
+    glUseProgram(shader_prgrm);
+    transform_uniform = glGetUniformLocation(shader_prgrm, "transform");
+
+    while(!glfwWindowShouldClose(window))
+    {
+        // input
+        processInput(window);
+
+        // rendering
+        // clear screen
+        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // process
+        time_value = glfwGetTime();
+        brightness = sin(time_value)/2;
+        glm_mat4_identity(m);
+        glm_translate(m, (vec3){sin(time_value)/2, cos(time_value)/2, 0.0f});
+        glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
 
 
-    // while(!glfwWindowShouldClose(window))
-    // {
-    //     // input
-    //     processInput(window);
+        //reder shapes
+        glBindVertexArray(VAO);
+        glUseProgram(shader_prgrm);
 
-    //     // rendering
-    //     // clear screen
-    //     glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
+        // modify appearance
+        setUniform(shader_prgrm, GL_FLOAT_VEC4, "brightness", brightness, 
+                   brightness, brightness, brightness);
+        glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
+        
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-    //     // process
-    //     time_value = glfwGetTime();
-    //     brightness = (sin(time_value) / 2.0f);
+        // 
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        msleep(16);
+    }
 
-
-    //     //reder shapes
-    //     glBindVertexArray(VAO);
-    //     glUseProgram(shader_prgrm);
-    //     // glUniform4f(vertex_color_location, brightness, brightness, brightness,
-    //     //             brightness);
-    //     setUniform(shader_prgrm, GL_FLOAT_VEC4, "add_color", brightness, 
-    //                brightness, brightness, brightness);
-    //     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    //     // 
-    //     glfwSwapBuffers(window);
-    //     glfwPollEvents();
-    //     msleep(16);
-    // }
-
-    // glfwTerminate();
+    glfwTerminate();
 
     return 0;
 }
+
+/* fn help
+ * glVertexAttribPointer(attribute position, 
+ *                       number of elements, 
+ *                       element type, 
+ *                       normalize, 
+ *                       stride,
+ *                       offset) */

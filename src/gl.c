@@ -60,24 +60,9 @@ void processInput(GLFWwindow *window)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-int getglError(unsigned int object, GLenum type, const char* info_message)
-{
-    int success; char info_log[512];
-    glGetShaderiv(object, type, &success);
-    if (unlikely(!success))
-    {
-        glGetShaderInfoLog(object, 512, NULL, info_log);
-        fprintf(stderr, TERM_COL_ERROR("error")
-                        ": " 
-                        TERM_COL_INFO("%s") 
-                        ": %s\n", info_message, info_log);
-        return 1;
-    }
-    return 0;
-}
-
 unsigned int FILE2shader(const char *file_path, GLenum shader_type)
 {
+    int success;
     unsigned int shader; // id du shader
     const char *shader_source;
     
@@ -91,33 +76,46 @@ unsigned int FILE2shader(const char *file_path, GLenum shader_type)
     glCompileShader(shader);
 
     // checking for compile errors
-    if (getglError(shader, GL_COMPILE_STATUS, "failed shader comilation"))
-        return 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (unlikely(!success))
+    {
+        char info_log[512];
+        glGetShaderInfoLog(shader, 512, NULL, info_log);
+        fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", "info_log"));
+        return 1;
+    }
 
     return shader;
 }
 
-unsigned int linkShaders2program(int n, ...)
+int linkShaders(unsigned int shader_program, int n, ...)
 {
+    if (unlikely(!shader_program))
+        return 1;
+
     va_list valist;
-    unsigned int shader_program = glCreateProgram(), i;
+    unsigned int i, s_id=0;
+    int success;
     
     va_start(valist, n);
     for (i=0; i<n; i++)
-        glAttachShader(shader_program, va_arg(valist, unsigned int));
+    {
+        s_id = va_arg(valist, unsigned int);
+        glAttachShader(shader_program, s_id);
+        glDeleteShader(s_id);
+    }
     glLinkProgram(shader_program);
 
-    if (getglError(shader_program, GL_LINK_STATUS, 
-                   "failed to link shaders into program"))
-        return 0;
+    glGetShaderiv(shader_program, GL_LINK_STATUS, &success);
+    if (unlikely(!success))
+    {
+        char info_log[512];
+        glGetShaderInfoLog(shader_program, 512, NULL, info_log);
+        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", "info_log"));
+        return 1;
+    }
 
-    // deleting shaders, as we dont need them anymore
-    va_start(valist, n);
-    for (i=0; i<n; i++)
-        glDeleteShader(va_arg(valist, unsigned int));
-    va_end(valist);
-
-    return shader_program;
+    return 0;
 }
 
 unsigned int setUniform(unsigned int shader_program, int type,
@@ -175,10 +173,10 @@ unsigned int setUniform(unsigned int shader_program, int type,
 
         case GL_INT_VEC4: case GL_BOOL_VEC4:
             va_start(valist, name);
-            printf("%d, %d, %d, %d\n", va_arg(valist, int),
-                                       va_arg(valist, int),
-                                       va_arg(valist, int),
-                                       va_arg(valist, int));
+            glUniform4i(uni_location, va_arg(valist, int),
+                                      va_arg(valist, int),
+                                      va_arg(valist, int),
+                                      va_arg(valist, int));
 
             break;
 
@@ -191,22 +189,22 @@ unsigned int setUniform(unsigned int shader_program, int type,
         case GL_UNSIGNED_INT_VEC2:
             va_start(valist, name);
             glUniform2ui(uni_location, va_arg(valist, unsigned int),
-                                      va_arg(valist, unsigned int));
+                                       va_arg(valist, unsigned int));
             break;
         
         case GL_UNSIGNED_INT_VEC3:
             va_start(valist, name);
             glUniform3ui(uni_location, va_arg(valist, unsigned int), 
-                                      va_arg(valist, unsigned int), 
-                                      va_arg(valist, unsigned int));
+                                       va_arg(valist, unsigned int), 
+                                       va_arg(valist, unsigned int));
             break;
 
         case GL_UNSIGNED_INT_VEC4:
             va_start(valist, name);
             glUniform4ui(uni_location, va_arg(valist, unsigned int), 
-                                      va_arg(valist, unsigned int), 
-                                      va_arg(valist, unsigned int),
-                                      va_arg(valist, unsigned int));
+                                       va_arg(valist, unsigned int), 
+                                       va_arg(valist, unsigned int),
+                                       va_arg(valist, unsigned int));
             break;
         
         default:

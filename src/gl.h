@@ -20,8 +20,8 @@ void processInput(GLFWwindow *window);
 // crée un shader depuis un fichier GLSL
 unsigned int FILE2shader(const char *file_path, GLenum shader_type);
 
-// crée un shader program à partir de n shaders
-unsigned int linkShaders2program(int n, ...);
+// link les shader à shader_program, retourne 1 si erreur
+int linkShaders(unsigned int shader_program, int n, ...);
 
 // set uniform (without bool, use int)
 unsigned int setUniform(unsigned int shader_program, int type,
