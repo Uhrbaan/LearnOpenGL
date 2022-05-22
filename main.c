@@ -52,7 +52,6 @@ int main(int argc, char const *argv[])
                     GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE,
                     GL_TEXTURE_MIN_FILTER, GL_NEAREST,
                     GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    setUniform(shader_program, GL_UNSIGNED_INT, "sampler_2d_texture", texture);
 
     // genrating buffers
     glGenVertexArrays(1, &VAO);
