@@ -22,9 +22,9 @@ int main(int argc, char const *argv[])
     initGLAD(0, 0, 800, 800);
 
     // <shaders>
-    unsigned int shader_prgrm, VAO, VBO, EBO;
-    shader_prgrm = glCreateProgram();
-    if (linkShaders(shader_prgrm, 2, 
+    unsigned int shader_program, VAO, VBO, EBO;
+    shader_program = glCreateProgram();
+    if (linkShaders(shader_program, 2, 
                     FILE2shader("res/GLshaders.glsl/shader.vs",
                                 GL_VERTEX_SHADER), 
                     FILE2shader("res/GLshaders.glsl/shader.fs", 
@@ -52,6 +52,7 @@ int main(int argc, char const *argv[])
                     GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE,
                     GL_TEXTURE_MIN_FILTER, GL_NEAREST,
                     GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    setUniform(shader_program, GL_UNSIGNED_INT, "sampler_2d_texture", texture);
 
     // genrating buffers
     glGenVertexArrays(1, &VAO);
@@ -88,8 +89,8 @@ int main(int argc, char const *argv[])
     unsigned int transform_uniform;
     mat4 m = GLM_MAT4_IDENTITY_INIT;
     
-    glUseProgram(shader_prgrm);
-    transform_uniform = glGetUniformLocation(shader_prgrm, "transform");
+    glUseProgram(shader_program);
+    transform_uniform = glGetUniformLocation(shader_program, "transform");
 
     while(!glfwWindowShouldClose(window))
     {
@@ -108,7 +109,7 @@ int main(int argc, char const *argv[])
         glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
 
         //reder shapes
-        glUseProgram(shader_prgrm);
+        glUseProgram(shader_program);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
 
