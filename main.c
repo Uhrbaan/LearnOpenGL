@@ -24,9 +24,9 @@ int main(int argc, char const *argv[])
     unsigned int shader_prgrm, VAO, VBO, EBO;
     shader_prgrm = glCreateProgram();
     if (linkShaders(shader_prgrm, 2, 
-                    FILE2shader("res/GLshaders.glsl/vert_triangle.glsl",
+                    FILE2shader("res/GLshaders.glsl/shader.vs",
                                 GL_VERTEX_SHADER), 
-                    FILE2shader("res/GLshaders.glsl/frag_triangle.glsl", 
+                    FILE2shader("res/GLshaders.glsl/shader.fs", 
                                 GL_FRAGMENT_SHADER)))
         return 1;
 

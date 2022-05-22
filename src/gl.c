@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
+
 #include "gl.h"
 #include "utils/utils.h"
 
@@ -212,4 +214,59 @@ unsigned int setUniform(unsigned int shader_program, int type,
     }
     va_end(valist);
     return uni_location;
+}
+
+unsigned int FILE2texture(const char *img_path, GLenum color_format, 
+                          GLenum texture_type)
+{
+    stbi_set_flip_vertically_on_load(true);
+    // loading texture
+    int w, h, n_channels;
+    unsigned char *data = stbi_load(img_path, &w, &h, &n_channels, 0);
+    if (!data)
+    {
+        printf(TERM_COL_ERROR("error") ": Failed to load texture\n");
+        return 0;
+    }
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(texture_type, texture);
+    // loading image in texture
+    glTexImage2D(texture_type,      // modifying current boudn TEXTURE2D
+                 0,                 // level of mipmap if made manualy
+                 color_format,            // format in which the texture is stored
+                 w,                 // width
+                 h,                 // height
+                 0,                 // always 0 (because legacy stuff)
+                 color_format,      // format & data type of the texture 
+                 GL_UNSIGNED_BYTE,  // └> rgb / bytes (char)
+                 data               // image data
+                 );
+    glGenerateMipmap(texture_type);
+    stbi_image_free(data); // free image data from memory
+    return texture;
+}
+
+void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...)
+{
+    /* modifie l'apparence de la texture si les coordonnées ne map pas l'objet
+     * options : GL_REPEAT (défaut), GL_MIRRORED_REPEAT, GL_CLAMP_TO_EDGE, 
+     *           GL_CLAMP_TO_BORDER ||  if clamp to edge is chosen:
+     *  float borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+     *  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);*/
+    /* texture filtering: ce que doit faire opengl quand les texels n'alignent
+     * pas les pixels : GL_NEAREST, GL_LINEAR 
+     * can be set on magnifying (GL_TEXTURE_MAG_FILTER) or minifying
+     * (GL_TEXTURE_MIN_FILTER) operations */
+    /* to prevent memory wastage, when small or far objects are rendered, smaler
+     * textures are used (mipmaps). can be generated through glGenerateMipmaps
+     * p. 58 */
+    va_list valist;
+    glBindTexture(texture_type, texture);
+    va_start(valist, texture_type);
+    for (int i=0; i<n; i++)
+    {
+        glTexParameteri(texture_type, va_arg(valist, GLenum), 
+                        va_arg(valist, GLenum));
+    }
 }
