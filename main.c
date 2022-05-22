@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include <cglm/cglm.h>
 
@@ -43,6 +44,15 @@ int main(int argc, char const *argv[])
         2, 3, 4
     };
 
+    unsigned int texture = FILE2texture("res/textures/safe_landing.jpg", 
+                                         GL_RGB, GL_TEXTURE_2D, false);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    setTextureParam(4, texture, GL_TEXTURE_2D, 
+                    GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE,
+                    GL_TEXTURE_MIN_FILTER, GL_NEAREST,
+                    GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     // genrating buffers
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -74,7 +84,7 @@ int main(int argc, char const *argv[])
     glEnableVertexAttribArray(2);
     
     // setup to modify render over time
-    float time_value, brightness;
+    float time_value;
     unsigned int transform_uniform;
     mat4 m = GLM_MAT4_IDENTITY_INIT;
     
@@ -93,24 +103,19 @@ int main(int argc, char const *argv[])
 
         // process
         time_value = glfwGetTime();
-        brightness = sin(time_value)/2;
         glm_mat4_identity(m);
         glm_translate(m, (vec3){sin(time_value)/2, cos(time_value)/2, 0.0f});
         glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
 
-
         //reder shapes
-        glBindVertexArray(VAO);
         glUseProgram(shader_prgrm);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindVertexArray(VAO);
 
-        // modify appearance
-        setUniform(shader_prgrm, GL_FLOAT_VEC4, "brightness", brightness, 
-                   brightness, brightness, brightness);
         glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
         
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // 
         glfwSwapBuffers(window);
         glfwPollEvents();
         msleep(16);

@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-
-
 #include "gl.h"
 #include "utils/utils.h"
+#include "utils/stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -83,7 +82,7 @@ unsigned int FILE2shader(const char *file_path, GLenum shader_type)
     {
         char info_log[512];
         glGetShaderInfoLog(shader, 512, NULL, info_log);
-        fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", "info_log"));
+        fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", info_log));
         return 1;
     }
 
@@ -113,7 +112,7 @@ int linkShaders(unsigned int shader_program, int n, ...)
     {
         char info_log[512];
         glGetShaderInfoLog(shader_program, 512, NULL, info_log);
-        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", "info_log"));
+        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", info_log));
         return 1;
     }
 
@@ -217,15 +216,17 @@ unsigned int setUniform(unsigned int shader_program, int type,
 }
 
 unsigned int FILE2texture(const char *img_path, GLenum color_format, 
-                          GLenum texture_type)
+                          GLenum texture_type, bool gen_mipmap)
 {
     stbi_set_flip_vertically_on_load(true);
     // loading texture
     int w, h, n_channels;
-    unsigned char *data = stbi_load(img_path, &w, &h, &n_channels, 0);
+    unsigned char *data = NULL;
+    data = stbi_load(img_path, &w, &h, &n_channels, 0);
     if (!data)
     {
-        printf(TERM_COL_ERROR("error") ": Failed to load texture\n");
+        printf(TERM_COL_ERROR("error") TERM_COL_INFO(": Failed to load texture")\
+                                                     "\n");
         return 0;
     }
     unsigned int texture;
@@ -242,8 +243,10 @@ unsigned int FILE2texture(const char *img_path, GLenum color_format,
                  GL_UNSIGNED_BYTE,  // └> rgb / bytes (char)
                  data               // image data
                  );
-    glGenerateMipmap(texture_type);
+    if (gen_mipmap)
+        glGenerateMipmap(texture_type);
     stbi_image_free(data); // free image data from memory
+    glBindTexture(0, texture);
     return texture;
 }
 

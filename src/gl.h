@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "utils/stb_image.h"
+
 // retourne 1 si n'a pas fonctionné
 int initGLFW(GLFWwindow **window, int width, int height,
              const char* title, GLFWmonitor* monitor,
@@ -29,7 +31,7 @@ unsigned int setUniform(unsigned int shader_program, int type,
 
 // load texture + create mipmap
 unsigned int FILE2texture(const char *img_path, GLenum color_format, 
-                          GLenum texture_type);
+                          GLenum texture_type, bool gen_mipmap);
 
 // set texture param
 void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...);
