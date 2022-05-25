@@ -2,13 +2,8 @@
 #include <stdbool.h>
 
 #include "gl.h"
-<<<<<<< HEAD
-#include "utils.h"
-#include "stb_image.h"
-=======
 #include "utils/utils.h"
 #include "utils/stb_image.h"
->>>>>>> 8-transform
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -226,17 +221,6 @@ unsigned int FILE2texture(const char *img_path, GLenum color_format,
     stbi_set_flip_vertically_on_load(true);
     // loading texture
     int w, h, n_channels;
-<<<<<<< HEAD
-    unsigned char *data = stbi_load(img_path, &w, &h, &n_channels, 0);
-    if (!data)
-    {
-        printf(TERM_COL_ERROR("error") ": Failed to load texture\n");
-        return 0;
-    }
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(texture_type, texture);
-=======
     unsigned int texture;
     unsigned char *data = NULL;
     data = stbi_load(img_path, &w, &h, &n_channels, 0);
@@ -249,18 +233,13 @@ unsigned int FILE2texture(const char *img_path, GLenum color_format,
     glGenTextures(1, &texture);
     glBindTexture(texture_type, texture);
 
->>>>>>> 8-transform
     // loading image in texture
     glTexImage2D(texture_type,      // modifying current boudn TEXTURE2D
                  0,                 // level of mipmap if made manualy
                  color_format,            // format in which the texture is stored
                  w,                 // width
                  h,                 // height
-<<<<<<< HEAD
-                 0,                 // always 0 (because legacy stuff)
-=======
                  0,                 // always 0 (legacy stuff)
->>>>>>> 8-transform
                  color_format,      // format & data type of the texture 
                  GL_UNSIGNED_BYTE,  // └> rgb / bytes (char)
                  data               // image data
