@@ -105,6 +105,7 @@ int main(int argc, char const *argv[])
         // process
         time_value = glfwGetTime();
 
+        // modifications & 
         glm_mat4_identity(m);
         glm_translate(m, (vec3){sin(time_value)/2, cos(time_value)/2, 0.0f});
         glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
