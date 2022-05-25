@@ -29,10 +29,11 @@ int linkShaders(unsigned int shader_program, int n, ...);
 unsigned int setUniform(unsigned int shader_program, int type,
                         const char *name, ...);
 
-// load texture + create mipmap
+// load texture
 unsigned int FILE2texture(const char *img_path, GLenum color_format, 
-                          GLenum texture_type, bool gen_mipmap);
+                          GLenum texture_type);
 
 // set texture param
 void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...);
+
 #endif

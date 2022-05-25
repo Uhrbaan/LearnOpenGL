@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
     initGLAD(0, 0, 800, 800);
 
     // <shaders>
-    unsigned int shader_program, VAO, VBO, EBO;
+    unsigned int shader_program;
     shader_program = glCreateProgram();
     if (linkShaders(shader_program, 2, 
                     FILE2shader("res/GLshaders.glsl/shader.vs",
@@ -31,56 +31,56 @@ int main(int argc, char const *argv[])
                                 GL_FRAGMENT_SHADER)))
         return 1;
 
-    float vertices[] = {
-        // vertices         // colors         // texture coo
-        -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top left
-         0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,   // top right
-         0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,   // botom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f    // botom left
-    };
+    // glEnable(GL_TEXTURE_2D); // troubleshooting steps https://stackoverflow.com/questions/740151/what-are-the-usual-troubleshooting-steps-for-opengl-textures-not-showing
+    unsigned int 
+    texture1 = FILE2texture("/usr/share/wallpapers/SafeLanding/contents/images/5120x2880.jpg", 
+                            GL_RGB, GL_TEXTURE_2D),
+    texture2 = FILE2texture("/usr/share/wallpapers/Altai/contents/images/5120x2880.png",
+                            GL_RGB, GL_TEXTURE_2D);
 
-    unsigned int indices[] = {
-        1, 2, 4,
-        2, 3, 4
-    };
+    float vertices[] = 
+        {// positions         // colors           // texture coords
+         0.7f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // top right
+         0.7f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // bottom right
+        -0.7f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.7f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f  // top left
+        };
+    unsigned int indices[] = 
+        {
+            0, 1, 3,
+            1, 2, 3 
+        };
 
-    unsigned int texture = FILE2texture("res/textures/safe_landing.jpg", 
-                                         GL_RGB, GL_TEXTURE_2D, false);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    setTextureParam(4, texture, GL_TEXTURE_2D, 
-                    GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE,
-                    GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE,
-                    GL_TEXTURE_MIN_FILTER, GL_NEAREST,
-                    GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // genrating buffers
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO); // binding vertex array -> keeps track of vertices
-
-    // vertex buffer object
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
-
-    // element buffer object
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
-
-    // vertex array attributes
-    // position attribute   -> repeats every 8 floats 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+    unsigned int VAO1, VBO1, EBO1;
+    glGenVertexArrays(1, &VAO1);
+    glGenBuffers(1, &VBO1);
+    glGenBuffers(1, &EBO1);
+    glBindVertexArray(VAO1);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)));
     glEnableVertexAttribArray(0);
-    
-    // color attribute      -> repeats every 8 floats and starts wit 3 offset
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float),
-                          (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 
-    // texture coordinates  -> repeats every 8 floats and starts at the 6th
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), 
-                          (void*)(6*sizeof(float)));
+    unsigned int VAO2, VBO2, EBO2;
+    glGenVertexArrays(1, &VAO2);
+    glGenBuffers(1, &VBO2);
+    glGenBuffers(1, &EBO2);
+    glBindVertexArray(VAO2);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     
     // setup to modify render over time
@@ -91,6 +91,7 @@ int main(int argc, char const *argv[])
     glUseProgram(shader_program);
     transform_uniform = glGetUniformLocation(shader_program, "transform");
 
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while(!glfwWindowShouldClose(window))
     {
         // input
@@ -98,29 +99,36 @@ int main(int argc, char const *argv[])
 
         // rendering
         // clear screen
-        glClearColor(0.0f, 0.2f, 0.2f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // process
         time_value = glfwGetTime();
+
         glm_mat4_identity(m);
         glm_translate(m, (vec3){sin(time_value)/2, cos(time_value)/2, 0.0f});
         glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
-
-        //reder shapes
         glUseProgram(shader_program);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glBindVertexArray(VAO);
-
         glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
-        
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glBindVertexArray(VAO1);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glm_mat4_identity(m);
+        glm_translate(m, (vec3){cos(time_value)/3, sin(time_value)/3, 0.0f});
+        glm_scale(m, (vec3){0.5f, 0.5f, 1.0f});
+        glm_rotate(m, -time_value, (vec3){0.0f, 0.0f, 1.0f});
+        glUseProgram(shader_program);
+        glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+        glBindVertexArray(VAO2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
         msleep(16);
     }
-
+ 
     glfwTerminate();
 
     return 0;

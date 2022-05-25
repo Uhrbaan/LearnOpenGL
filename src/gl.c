@@ -216,11 +216,12 @@ unsigned int setUniform(unsigned int shader_program, int type,
 }
 
 unsigned int FILE2texture(const char *img_path, GLenum color_format, 
-                          GLenum texture_type, bool gen_mipmap)
+                          GLenum texture_type)
 {
     stbi_set_flip_vertically_on_load(true);
     // loading texture
     int w, h, n_channels;
+    unsigned int texture;
     unsigned char *data = NULL;
     data = stbi_load(img_path, &w, &h, &n_channels, 0);
     if (!data)
@@ -229,24 +230,22 @@ unsigned int FILE2texture(const char *img_path, GLenum color_format,
                                                      "\n");
         return 0;
     }
-    unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(texture_type, texture);
+
     // loading image in texture
     glTexImage2D(texture_type,      // modifying current boudn TEXTURE2D
                  0,                 // level of mipmap if made manualy
                  color_format,            // format in which the texture is stored
                  w,                 // width
                  h,                 // height
-                 0,                 // always 0 (because legacy stuff)
+                 0,                 // always 0 (legacy stuff)
                  color_format,      // format & data type of the texture 
                  GL_UNSIGNED_BYTE,  // └> rgb / bytes (char)
                  data               // image data
                  );
-    if (gen_mipmap)
-        glGenerateMipmap(texture_type);
+    glGenerateMipmap(texture_type);
     stbi_image_free(data); // free image data from memory
-    glBindTexture(0, texture);
     return texture;
 }
 
