@@ -1,5 +1,5 @@
 PROGRAM=bin/main
-CC=gcc
+CC=clang
 
 CFLAGS= -g -Wall
 LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm

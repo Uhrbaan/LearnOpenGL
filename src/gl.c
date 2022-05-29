@@ -226,7 +226,7 @@ unsigned int FILE2texture(const char *img_path, GLenum color_format,
     data = stbi_load(img_path, &w, &h, &n_channels, 0);
     if (!data)
     {
-        printf(TERM_COL_ERROR("error") TERM_COL_INFO(": Failed to load texture")\
+        printf(TERM_COL_ERROR("error: ") TERM_COL_INFO("Failed to load texture")\
                                                      "\n");
         return 0;
     }

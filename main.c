@@ -1,5 +1,14 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
- *
+ * Coordinates system:
+ *  - local space   -> coordinates relative to objects origin
+ *      model matrix
+ *  - world space   -> coordinates relative to the world
+ *      view matrix
+ *  - View space    -> coo relative to the camera's point of view
+ *      projection matrix
+ *  - Clip space    -> transforms to 0.0-1.0 coo & determins if on screen
+ *      viewport transform
+ *  - screen space  -> coo on the screen
  */
 
 #include <stdio.h>
@@ -16,10 +25,10 @@
 int main(int argc, char const *argv[])
 {
     GLFWwindow *window=NULL;
-    if (initGLFW(&window, 800, 800, "Learn Opengl", NULL, NULL))
+    if (initGLFW(&window, 800, 600, "Learn Opengl", NULL, NULL))
         return 1;
     
-    initGLAD(0, 0, 800, 800);
+    initGLAD(0, 0, 800, 600);
 
     // <shaders>
     unsigned int shader_program;
@@ -30,66 +39,71 @@ int main(int argc, char const *argv[])
                     FILE2shader("res/GLshaders.glsl/shader.fs", 
                                 GL_FRAGMENT_SHADER)))
         return 1;
-
-    // glEnable(GL_TEXTURE_2D); // troubleshooting steps https://stackoverflow.com/questions/740151/what-are-the-usual-troubleshooting-steps-for-opengl-textures-not-showing
-    unsigned int 
-    texture1 = FILE2texture("/usr/share/wallpapers/SafeLanding/contents/images/5120x2880.jpg", 
-                            GL_RGB, GL_TEXTURE_2D),
-    texture2 = FILE2texture("/usr/share/wallpapers/Altai/contents/images/5120x2880.png",
-                            GL_RGB, GL_TEXTURE_2D);
-
-    float vertices[] = 
-        {// positions         // colors           // texture coords
-         0.7f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f, // top right
-         0.7f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f, // bottom right
-        -0.7f, -0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.7f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f  // top left
-        };
-    unsigned int indices[] = 
-        {
-            0, 1, 3,
-            1, 2, 3 
-        };
-
-    unsigned int VAO1, VBO1, EBO1;
-    glGenVertexArrays(1, &VAO1);
-    glGenBuffers(1, &VBO1);
-    glGenBuffers(1, &EBO1);
-    glBindVertexArray(VAO1);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO1);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)));
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    unsigned int VAO2, VBO2, EBO2;
-    glGenVertexArrays(1, &VAO2);
-    glGenBuffers(1, &VBO2);
-    glGenBuffers(1, &EBO2);
-    glBindVertexArray(VAO2);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO2);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)));
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
     
-    // setup to modify render over time
-    float time_value;
-    unsigned int transform_uniform;
-    mat4 m = GLM_MAT4_IDENTITY_INIT;
+    /* projection
+     * orthographic projection
+     *  glm_ortho(left coo of the frustum,
+     *            right,
+     *            bottom,
+     *            top,
+     *            distance to near plane,
+     *            far plane)
+     * perspective projection
+     *  glm_perspective(fov (in RAD, natural ~45°),
+     *                  aspect ratio (vp_width/vp_height), 
+     *                  distance to near plane, 
+     *                  far plane)
+     * -> V_clip = M_projection · M_view · M_model ·V_local
+     *  ! matrix multiplication reads from right to left
+     */
     
+    mat4 model = GLM_MAT4_IDENTITY_INIT;
+    glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
+    mat4 view = GLM_MAT4_IDENTITY_INIT;
+    // translating scene forward (-z) to appear going further
+    glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
+    mat4 projection = GLM_MAT4_IDENTITY_INIT;
+    glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
+
+    unsigned int model_loc, view_loc, projection_loc;
     glUseProgram(shader_program);
-    transform_uniform = glGetUniformLocation(shader_program, "transform");
+    model_loc = glGetUniformLocation(shader_program, "model");
+    glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
+    view_loc = glGetUniformLocation(shader_program, "view");
+    glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
+    projection_loc = glGetUniformLocation(shader_program, "projection");
+    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
+
+    float vertices[] = {
+        // positions        // colors         // texture coords
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+    };
+    unsigned int indices[] = {
+        0, 1, 3, // fisrt triangle
+        1, 2, 3  // second triangle
+    };
+
+    unsigned int vao, vbo, ebo;
+    size_t stride, off_pos, off_col, off_tex;
+    stride  = 8*sizeof(float);
+    off_pos = 0;
+    off_col = 3*sizeof(float); 
+    off_tex = 6*sizeof(float); 
+    glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo); glGenBuffers(1, &ebo);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_VERTEX_ARRAY, vbo);
+    glBufferData(GL_VERTEX_ARRAY, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)off_pos);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, (void*)off_col);
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, (void*)off_tex);
+    unsigned int texture = FILE2texture("/home/uhrbaan/Documents/Code/C/openGL/\
+                                         com.learnopengl/res/textures/jade.jpg",
+                                        GL_RGB, GL_TEXTURE_2D);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while(!glfwWindowShouldClose(window))
@@ -103,27 +117,10 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         // process
-        time_value = glfwGetTime();
-
-        // modifications & 
-        glm_mat4_identity(m);
-        glm_translate(m, (vec3){sin(time_value)/2, cos(time_value)/2, 0.0f});
-        glm_rotate(m, time_value, (vec3){0.0f, 0.0f, 1.0f});
         glUseProgram(shader_program);
-        glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glBindVertexArray(VAO1);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        glm_mat4_identity(m);
-        glm_translate(m, (vec3){cos(time_value)/3, sin(time_value)/3, 0.0f});
-        glm_scale(m, (vec3){0.5f, 0.5f, 1.0f});
-        glm_rotate(m, -time_value, (vec3){0.0f, 0.0f, 1.0f});
-        glUseProgram(shader_program);
-        glUniformMatrix4fv(transform_uniform, 1, GL_FALSE, (const float*)m);
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        glBindVertexArray(VAO2);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

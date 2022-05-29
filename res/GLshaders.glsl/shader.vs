@@ -5,11 +5,12 @@ layout (location = 2) in vec2 v_texture_coo;
 
 out vec3 base_color;
 out vec2 texture_coo;
-uniform mat4 transform;
+
+uniform mat4 model, view, projection;
 
 void main()
 {
-    gl_Position = transform * vec4(v_vertices_pos, 1.0);
+    gl_Position = model * view * projection * vec4(v_vertices_pos, 1.0);
     base_color = v_base_color;
     texture_coo = v_texture_coo;
 }
