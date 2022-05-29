@@ -61,15 +61,10 @@ int main(int argc, char const *argv[])
      */
     
     mat4 model = GLM_MAT4_IDENTITY_INIT;
-    glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
     mat4 view = GLM_MAT4_IDENTITY_INIT;
-    // translating scene forward (-z) to appear going further
-    glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
     mat4 projection = GLM_MAT4_IDENTITY_INIT;
-    glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
 
     unsigned int model_loc, view_loc, projection_loc;
-    glUseProgram(shader_program);
     model_loc = glGetUniformLocation(shader_program, "model");
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
     view_loc = glGetUniformLocation(shader_program, "view");
@@ -101,9 +96,9 @@ int main(int argc, char const *argv[])
     glBufferData(GL_VERTEX_ARRAY, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)off_pos);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, (void*)off_col);
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, (void*)off_tex);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, (void*)(3*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, (void*)(6*sizeof(float)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -111,6 +106,7 @@ int main(int argc, char const *argv[])
     unsigned int texture = FILE2texture("/home/uhrbaan/Documents/Code/C/openGL/com.learnopengl/res/textures/safe_landing.jpg",
                                         GL_RGB, GL_TEXTURE_2D);
 
+    glUseProgram(shader_program);
     glm_perspective(glm_rad(45.0f), (float)SCR_W/(float)SCR_H, 0.1f, 100.0f, projection);
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
 
@@ -126,14 +122,14 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, texture);
 
         // process
         glm_mat4_identity(model);
         glm_mat4_identity(view);
         glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
-        glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
+        glm_translate(view, (vec3){0.0f, 0.0f, -3.0f});
 
         glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
@@ -146,6 +142,11 @@ int main(int argc, char const *argv[])
         glfwPollEvents();
         msleep(16);
     }
+
+    // dealocating
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
  
     glfwTerminate();
 
