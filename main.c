@@ -22,13 +22,16 @@
 #include "src/utils/utils.h"
 #include "src/utils/matrix.h"
 
+#define SCR_W 800
+#define SCR_H 600
+
 int main(int argc, char const *argv[])
 {
     GLFWwindow *window=NULL;
-    if (initGLFW(&window, 800, 600, "Learn Opengl", NULL, NULL))
+    if (initGLFW(&window, SCR_W, SCR_H, "Learn Opengl", NULL, NULL))
         return 1;
     
-    initGLAD(0, 0, 800, 600);
+    initGLAD(0, 0, SCR_W, SCR_H);
 
     // <shaders>
     unsigned int shader_program;
@@ -53,17 +56,17 @@ int main(int argc, char const *argv[])
      *                  aspect ratio (vp_width/vp_height), 
      *                  distance to near plane, 
      *                  far plane)
-     * -> V_clip = M_projection · M_view · M_model ·V_local
+     * -> V_clip = M_projection · M_view · M_model · V_local
      *  ! matrix multiplication reads from right to left
      */
     
     mat4 model = GLM_MAT4_IDENTITY_INIT;
-    // glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
+    glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
     mat4 view = GLM_MAT4_IDENTITY_INIT;
     // translating scene forward (-z) to appear going further
-    // glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
+    glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
     mat4 projection = GLM_MAT4_IDENTITY_INIT;
-    // glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
+    glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
 
     unsigned int model_loc, view_loc, projection_loc;
     glUseProgram(shader_program);
@@ -75,11 +78,11 @@ int main(int argc, char const *argv[])
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
 
     float vertices[] = {
-        // positions        // colors         // texture coords
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // top right
-         1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // bottom right
-        -1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f // top left
+        // positions        // color          // texture coords
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // top left
     };
     unsigned int indices[] = {
         0, 1, 3, // first triangle
@@ -104,8 +107,12 @@ int main(int argc, char const *argv[])
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
-    unsigned int texture = FILE2texture("res/textures/jade.jpg",
+
+    unsigned int texture = FILE2texture("/home/uhrbaan/Documents/Code/C/openGL/com.learnopengl/res/textures/safe_landing.jpg",
                                         GL_RGB, GL_TEXTURE_2D);
+
+    glm_perspective(glm_rad(45.0f), (float)SCR_W/(float)SCR_H, 0.1f, 100.0f, projection);
+    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     while(!glfwWindowShouldClose(window))
@@ -118,9 +125,20 @@ int main(int argc, char const *argv[])
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // process
         glUseProgram(shader_program);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+
+        // process
+        glm_mat4_identity(model);
+        glm_mat4_identity(view);
+        glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
+        glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
+
+        glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
+        glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
+
+        // render
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -140,4 +158,5 @@ int main(int argc, char const *argv[])
  *                       element type, 
  *                       normalize, 
  *                       stride,
- *                       offset) */
+ *                       offset) 
+ */
