@@ -58,12 +58,12 @@ int main(int argc, char const *argv[])
      */
     
     mat4 model = GLM_MAT4_IDENTITY_INIT;
-    glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
+    // glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
     mat4 view = GLM_MAT4_IDENTITY_INIT;
     // translating scene forward (-z) to appear going further
-    glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
+    // glm_translate(view, (vec3){0.0f, 0.0f, -0.3f});
     mat4 projection = GLM_MAT4_IDENTITY_INIT;
-    glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
+    // glm_perspective(glm_rad(45.0f), 800.0f/600.0f, 0.1f, 100.0f, projection);
 
     unsigned int model_loc, view_loc, projection_loc;
     glUseProgram(shader_program);
@@ -76,13 +76,13 @@ int main(int argc, char const *argv[])
 
     float vertices[] = {
         // positions        // colors         // texture coords
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+         1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // top right
+         1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // bottom right
+        -1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f // top left
     };
     unsigned int indices[] = {
-        0, 1, 3, // fisrt triangle
+        0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
 
@@ -101,8 +101,10 @@ int main(int argc, char const *argv[])
     glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)off_pos);
     glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, (void*)off_col);
     glVertexAttribPointer(2, 2, GL_FLOAT, false, stride, (void*)off_tex);
-    unsigned int texture = FILE2texture("/home/uhrbaan/Documents/Code/C/openGL/\
-                                         com.learnopengl/res/textures/jade.jpg",
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    unsigned int texture = FILE2texture("res/textures/jade.jpg",
                                         GL_RGB, GL_TEXTURE_2D);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -120,7 +122,7 @@ int main(int argc, char const *argv[])
         glUseProgram(shader_program);
         glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, indices);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

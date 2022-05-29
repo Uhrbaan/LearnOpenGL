@@ -10,7 +10,7 @@ uniform mat4 model, view, projection;
 
 void main()
 {
-    gl_Position = model * view * projection * vec4(v_vertices_pos, 1.0);
+    gl_Position = /* model * view * projection *  */vec4(v_vertices_pos, 1.0);
     base_color = v_base_color;
     texture_coo = v_texture_coo;
 }
