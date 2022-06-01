@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <cglm/cglm.h>
-#include <glad/glad.h>
-#include <glad/gl.h>
 
 #include "utils/utils.h"
 #include "utils/stb_image.h"

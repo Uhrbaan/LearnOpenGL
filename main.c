@@ -39,18 +39,20 @@ int main(int argc, char const *argv[])
                                 GL_FRAGMENT_SHADER)))
         return 1;
 
+    initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, 0.0f}, 
+               (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 0.5f);
+
     // projection init
     mat4wloc model = createUniformMatrix("u_model", shader_program);
-    mat4wloc view = createUniformMatrix("u_view", shader_program);
-    mat4wloc projection = createUniformMatrix("u_projection", shader_program);
-    glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, projection.m);
-    updateUniformMatrix(projection, 0);
+    cam.view = createUniformMatrix("u_view", shader_program);
+    cam.projection = createUniformMatrix("u_projection", shader_program);
+    glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
+    updateUniformMatrix(cam.projection, 0);
 
     // camera
     memcpy(cam.pos, (vec3){0.0f, 0.0f, 3.0f}, sizeof(vec3));
-    memcpy(cam.front, (vec3){0.0f, 0.0f, -1.0f}, sizeof(vec3));
-    memcpy(cam.up, (vec3){0.0f, 1.0f, 0.0f}, sizeof(vec3));
-    cam.speed = 1.0f;
+    memcpy(cam.z, (vec3){0.0f, 0.0f, -1.0f}, sizeof(vec3));
+    memcpy(cam.y, (vec3){0.0f, 1.0f, 0.0f}, sizeof(vec3));
 
     // model
     unsigned int texture;
@@ -94,8 +96,7 @@ int main(int argc, char const *argv[])
         glBindTexture(GL_TEXTURE_2D, texture);
 
         // process
-        moveCamera(cam.pos, cam.front, cam.up, view.m);
-        updateUniformMatrix(view, 0);
+        updateCamera();
 
         // render
         glBindVertexArray(vao);

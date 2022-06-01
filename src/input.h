@@ -3,6 +3,8 @@
 
 #include "gl.h"
 
+extern float cursor_lastx, cursor_lasty;
+
 // retourne 1 si n'a pas fonctionné
 int initGLFW(GLFWwindow **window, int width, int height,
              const char* title, GLFWmonitor* monitor,
