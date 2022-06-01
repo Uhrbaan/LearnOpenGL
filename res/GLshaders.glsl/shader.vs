@@ -1,18 +1,18 @@
 #version 460 core
-layout (location = 0) in vec3 v_vertices_pos;
-layout (location = 1) in vec3 v_color;
-layout (location = 2) in vec2 v_texture_coo;
+layout (location = 0) in vec3 i_pos;
+layout (location = 1) in vec3 i_col;
+layout (location = 2) in vec2 i_tex;
 
-out vec3 base_color;
-out vec2 texture_coo;
+out vec3 o_col;
+out vec2 o_tex;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(v_vertices_pos, 1.0);
-    texture_coo = v_texture_coo;
-    base_color  = v_color;
+    gl_Position = u_projection * u_view * u_model * vec4(i_pos, 1.0);
+    o_col = i_col;
+    o_tex = vec2(i_tex.x, i_tex.y);
 }
