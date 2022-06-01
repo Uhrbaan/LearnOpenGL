@@ -1,37 +1,12 @@
+#include "gl.h"
 #include <stdio.h>
 #include <stdbool.h>
+#include <cglm/cglm.h>
+#include <glad/glad.h>
+#include <glad/gl.h>
 
-#include "gl.h"
 #include "utils/utils.h"
 #include "utils/stb_image.h"
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-int initGLFW(GLFWwindow **window, int width, int height, 
-             const char* title, GLFWmonitor* monitor, 
-             GLFWwindow* share)
-{
-    if (likely(glfwInit() == GLFW_TRUE))
-    {
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-        *window = glfwCreateWindow(width, height, title, monitor, share);
-        if (unlikely(*window == NULL))
-        {
-            printf(TERM_COL_ERROR("error") ":Failed to create GLFW window\n");
-            glfwTerminate();
-            return 1;
-        }
-        glfwMakeContextCurrent(*window);
-        glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
-            // quoi faire en quand la fenêtre change de taille
-        
-        return 0;
-    }
-    return 1;
-}
 
 int initGLAD(GLint x, GLint y, GLsizei width, GLsizei height)
 {
@@ -42,23 +17,6 @@ int initGLAD(GLint x, GLint y, GLsizei width, GLsizei height)
     }
     glViewport(x, y, width, height);
     return 0;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // callback function that tells what to do on a resize
-    glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
-    if (glfwGetKey(window, 'W') == GLFW_PRESS) // !! la lettre doit être maj
-        // set wireframe
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    if (glfwGetKey(window, 'F') == GLFW_PRESS)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 unsigned int FILE2shader(const char *file_path, GLenum shader_type)
@@ -271,4 +229,21 @@ void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...)
         glTexParameteri(texture_type, va_arg(valist, GLenum), 
                         va_arg(valist, GLenum));
     }
+}
+
+mat4wloc createUniformMatrix(const char *uniform_name, 
+                             unsigned int shader_program)
+{
+    mat4wloc um4 =
+    {
+        GLM_MAT4_IDENTITY_INIT, 
+        glGetUniformLocation(shader_program, uniform_name),
+        shader_program
+    };
+    return um4;
+}
+void updateUniformMatrix(mat4wloc um4, int transpose)
+{
+    glUseProgram(um4.shader_program);
+    glUniformMatrix4fv(um4.uniform_location, 1, transpose, (float*)(um4.m));
 }

@@ -1,26 +1,22 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
- * Coordinates system:
- *  - local space   -> coordinates relative to objects origin
- *      model matrix
- *  - world space   -> coordinates relative to the world
- *      view matrix
- *  - View space    -> coo relative to the camera's point of view
- *      projection matrix
- *  - Clip space    -> transforms to 0.0-1.0 coo & determins if on screen
- *      viewport transform
- *  - screen space  -> coo on the screen
+ * Camera
+ *  simulating a camera
  */
+
+#define GLFW_INCLUDE_NONE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <cglm/cglm.h>
 
 #include "src/gl.h"
 #include "src/utils/utils.h"
-#include "src/utils/matrix.h"
+#include "src/input.h"
+#include "src/camera.h"
 
 const float SCR_W = 800.0f;
 const float SCR_H = 600.0f;
@@ -33,7 +29,7 @@ int main(int argc, char const *argv[])
     
     initGLAD(0, 0, SCR_W, SCR_H);
 
-    // <shaders>
+    // shaders
     unsigned int shader_program;
     shader_program = glCreateProgram();
     if (linkShaders(shader_program, 2, 
@@ -42,93 +38,26 @@ int main(int argc, char const *argv[])
                     FILE2shader("res/GLshaders.glsl/shader.fs", 
                                 GL_FRAGMENT_SHADER)))
         return 1;
+
+    // projection init
+    mat4wloc model = createUniformMatrix("u_model", shader_program);
+    mat4wloc view = createUniformMatrix("u_view", shader_program);
+    mat4wloc projection = createUniformMatrix("u_projection", shader_program);
+    glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, projection.m);
+    updateUniformMatrix(projection, 0);
+
+    // camera
+    memcpy(cam.pos, (vec3){0.0f, 0.0f, 3.0f}, sizeof(vec3));
+    memcpy(cam.front, (vec3){0.0f, 0.0f, -1.0f}, sizeof(vec3));
+    memcpy(cam.up, (vec3){0.0f, 1.0f, 0.0f}, sizeof(vec3));
+    cam.speed = 1.0f;
+
+    // model
+    unsigned int texture;
+    texture = FILE2texture("res/textures/safe_landing.jpg", GL_RGB, GL_TEXTURE_2D);
     
-    /* projection
-     * orthographic projection
-     *  glm_ortho(left coo of the frustum,
-     *            right,
-     *            bottom,
-     *            top,
-     *            distance to near plane,
-     *            far plane)
-     * perspective projection
-     *  glm_perspective(fov (in RAD, natural ~45°),
-     *                  aspect ratio (vp_width/vp_height), 
-     *                  distance to near plane, 
-     *                  far plane)
-     * -> V_clip = M_projection · M_view · M_model · V_local
-     *  ! matrix multiplication reads from right to left
-     */
-    
-    mat4 model = GLM_MAT4_IDENTITY_INIT;
-    mat4 view = GLM_MAT4_IDENTITY_INIT;
-    mat4 projection = GLM_MAT4_IDENTITY_INIT;
 
-    unsigned int model_loc, view_loc, projection_loc;
-    model_loc = glGetUniformLocation(shader_program, "u_model");
-    glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
-    view_loc = glGetUniformLocation(shader_program, "u_view");
-    glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
-    projection_loc = glGetUniformLocation(shader_program, "u_projection");
-    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
-
-    float vertices[] = {
-        // pos                // tex coo
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-    vec3 cube_pos[] = {
-        { 0.0f,  0.0f,  0.0f},
-        { 2.0f,  5.0f, -15.0f},
-        {-1.5f, -2.2f, -2.5f},
-        {-3.8f, -2.0f, -12.3f},
-        { 2.4f, -0.4f, -3.5f},
-        {-1.7f,  3.0f, -7.5f},
-        { 1.3f, -2.0f, -2.5f},
-        { 1.5f,  2.0f, -2.5f},
-        { 1.5f,  0.2f, -1.5f},
-        {-1.3f,  1.0f, -1.5f}
-    };
-
+    float vertices[] = MODEL_CUBE; vec3 cubes_pos[] = MODEL_10_CUBES_POS;
     unsigned int vao, vbo;
     size_t stride, off_pos, off_tex;
     stride  = 5*sizeof(float);
@@ -143,16 +72,16 @@ int main(int argc, char const *argv[])
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    unsigned int texture;
-    texture = FILE2texture("res/textures/safe_landing.jpg", GL_RGB, GL_TEXTURE_2D);
-    glUseProgram(shader_program);
-    glm_perspective(glm_rad(45.0f), SCR_W/SCR_H, 0.1f, 100.0f, projection);
-    glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST); // allows testing for z-bufer
+    // met la souris au centre et l'empêche de sortir
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     while(!glfwWindowShouldClose(window))
     {
+        // uptdate delta
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+
         // input
         processInput(window);
 
@@ -165,20 +94,18 @@ int main(int argc, char const *argv[])
         glBindTexture(GL_TEXTURE_2D, texture);
 
         // process
-        glm_mat4_identity(view);
-        glm_translate(view, (vec3){/* sin(glfwGetTime()) */0.0f, /* cos(glfwGetTime()) */0.0f, -3.0f});
-        glm_rotate(view, glm_rad(10*sin(glfwGetTime())), (vec3){2.0f, -2.0f, 0.0f});
-        glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
+        moveCamera(cam.pos, cam.front, cam.up, view.m);
+        updateUniformMatrix(view, 0);
 
         // render
         glBindVertexArray(vao);
         for (int i=0; i<10; i++)
         {
-            glm_mat4_identity(model);
-            glm_translate(model, cube_pos[i]);
+            glm_mat4_identity(model.m);
+            glm_translate(model.m, cubes_pos[i]);
             float angle = 20.0f * i;
-            glm_rotate(model, glm_rad(angle)*(float)glfwGetTime(), (vec3){1.0f, 0.3f, 0.5f});
-            glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
+            glm_rotate(model.m, glm_rad(angle)*current_frame, (vec3){1.0f, 0.3f, 0.5f});
+            updateUniformMatrix(model, 0);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
