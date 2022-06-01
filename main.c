@@ -22,8 +22,8 @@
 #include "src/utils/utils.h"
 #include "src/utils/matrix.h"
 
-#define SCR_W 800
-#define SCR_H 600
+const float SCR_W = 800.0f;
+const float SCR_H = 600.0f;
 
 int main(int argc, char const *argv[])
 {
@@ -73,44 +73,84 @@ int main(int argc, char const *argv[])
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
 
     float vertices[] = {
-        // positions        // color          // texture coords
-         0.7f,  0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // top right
-         0.7f, -0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // bottom right
-        -0.7f, -0.7f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // top left
+        // pos                // tex coo
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
-    unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+    vec3 cube_pos[] = {
+        { 0.0f,  0.0f,  0.0f},
+        { 2.0f,  5.0f, -15.0f},
+        {-1.5f, -2.2f, -2.5f},
+        {-3.8f, -2.0f, -12.3f},
+        { 2.4f, -0.4f, -3.5f},
+        {-1.7f,  3.0f, -7.5f},
+        { 1.3f, -2.0f, -2.5f},
+        { 1.5f,  2.0f, -2.5f},
+        { 1.5f,  0.2f, -1.5f},
+        {-1.3f,  1.0f, -1.5f}
     };
 
-    unsigned int vao, vbo, ebo;
-    size_t stride, off_pos, off_col, off_tex;
-    stride  = 8*sizeof(float);
+    unsigned int vao, vbo;
+    size_t stride, off_pos, off_tex;
+    stride  = 5*sizeof(float);
     off_pos = 0;
-    off_col = 3*sizeof(float); 
-    off_tex = 6*sizeof(float); 
-    glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo); glGenBuffers(1, &ebo);
+    off_tex = 3*sizeof(float);
+    glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo);
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)off_pos);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)off_col);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)off_tex);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)off_pos);
+    glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, (void*)off_tex);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
 
-    unsigned int texture = FILE2texture("/home/uhrbaan/Documents/Code/C/openGL/com.learnopengl/res/textures/safe_landing.jpg",
-                                        GL_RGB, GL_TEXTURE_2D);
-
+    unsigned int texture;
+    texture = FILE2texture("res/textures/safe_landing.jpg", GL_RGB, GL_TEXTURE_2D);
     glUseProgram(shader_program);
-    glm_perspective(glm_rad(45.0f), (float)SCR_W/(float)SCR_H, 0.1f, 100.0f, projection);
+    glm_perspective(glm_rad(45.0f), SCR_W/SCR_H, 0.1f, 100.0f, projection);
     glUniformMatrix4fv(projection_loc, 1, GL_FALSE, (float*)projection);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glEnable(GL_DEPTH_TEST); // allows testing for z-bufer
     while(!glfwWindowShouldClose(window))
     {
         // input
@@ -118,24 +158,29 @@ int main(int argc, char const *argv[])
 
         // rendering
         // clear screen
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shader_program);
         glBindTexture(GL_TEXTURE_2D, texture);
 
         // process
-        glm_mat4_identity(model);
         glm_mat4_identity(view);
-        glm_rotate(model, glm_rad(-55.0f),(vec3){1.0f, 0.0f, 0.0f});
-        glm_translate(view, (vec3){0.0f, 0.0f, -3.0f});
-
-        glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
+        glm_translate(view, (vec3){/* sin(glfwGetTime()) */0.0f, /* cos(glfwGetTime()) */0.0f, -3.0f});
+        glm_rotate(view, glm_rad(10*sin(glfwGetTime())), (vec3){2.0f, -2.0f, 0.0f});
         glUniformMatrix4fv(view_loc, 1, GL_FALSE, (float*)view);
 
         // render
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        for (int i=0; i<10; i++)
+        {
+            glm_mat4_identity(model);
+            glm_translate(model, cube_pos[i]);
+            float angle = 20.0f * i;
+            glm_rotate(model, glm_rad(angle)*(float)glfwGetTime(), (vec3){1.0f, 0.3f, 0.5f});
+            glUniformMatrix4fv(model_loc, 1, GL_FALSE, (float*)model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -145,7 +190,6 @@ int main(int argc, char const *argv[])
     // dealocating
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
-    glDeleteBuffers(1, &ebo);
  
     glfwTerminate();
 
