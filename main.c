@@ -1,6 +1,6 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
- * Camera
- *  simulating a camera
+ * lighting
+ *  
  */
 
 #define GLFW_INCLUDE_NONE
@@ -17,6 +17,7 @@
 #include "src/utils/utils.h"
 #include "src/input.h"
 #include "src/camera.h"
+#include "src/model.h"
 
 const float SCR_W = 800.0f;
 const float SCR_H = 600.0f;
@@ -26,53 +27,47 @@ int main(int argc, char const *argv[])
     GLFWwindow *window=NULL;
     if (initGLFW(&window, SCR_W, SCR_H, "Learn Opengl", NULL, NULL))
         return 1;
-    
     initGLAD(0, 0, SCR_W, SCR_H);
+    cam = initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, -1.0f}, 
+                     (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 1.0f);
 
-    // shaders
-    unsigned int shader_program;
-    shader_program = glCreateProgram();
-    if (linkShaders(shader_program, 2, 
-                    FILE2shader("res/GLshaders.glsl/shader.vs",
-                                GL_VERTEX_SHADER), 
-                    FILE2shader("res/GLshaders.glsl/shader.fs", 
-                                GL_FRAGMENT_SHADER)))
+    unsigned int shader_light, shader_cube;
+    if (!(shader_light = createShaderProgram("res/glsl/cube.vs", 
+                                             "res/glsl/light.fs")))
+        return 1;
+    if (!(shader_cube  = createShaderProgram("res/glsl/cube.vs",
+                                             "res/glsl/cube.fs")))
         return 1;
 
-    initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, 0.0f}, 
-               (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 0.5f);
-
     // projection init
-    mat4wloc model = createUniformMatrix("u_model", shader_program);
-    cam.view = createUniformMatrix("u_view", shader_program);
-    cam.projection = createUniformMatrix("u_projection", shader_program);
+    unsigned int programs[] = {shader_light, shader_cube};
+    mat4wloc l_transform = createUniformMatrix("u_transform", 1, &shader_light);
+    mat4wloc c_transform = createUniformMatrix("u_transform", 1, &shader_cube);
+    cam.view = createUniformMatrix("u_view", 2, programs);
+    cam.projection = createUniformMatrix("u_projection", 2, programs);
     glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
     updateUniformMatrix(cam.projection, 0);
-
-    // camera
-    memcpy(cam.pos, (vec3){0.0f, 0.0f, 3.0f}, sizeof(vec3));
-    memcpy(cam.z, (vec3){0.0f, 0.0f, -1.0f}, sizeof(vec3));
-    memcpy(cam.y, (vec3){0.0f, 1.0f, 0.0f}, sizeof(vec3));
-
-    // model
-    unsigned int texture;
-    texture = FILE2texture("res/textures/safe_landing.jpg", GL_RGB, GL_TEXTURE_2D);
     
+    float vertices[] = MODEL_CUBE;
+    unsigned int vbo;
+    model light = createModel((vec3){1.2f, 1.0f, 2.0f},
+                              (vec3){0.2f, 0.2f, 0.2f}, (vec3){0},
+                              &l_transform, 0, 0), 
+          cube  = createModel((vec3){0.0f}, (vec3){0.0f}, (vec3){0.0f}, 
+                              &c_transform, 0, 0);
+    vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    light.vao = genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 3*sizeof(float), (void*)0);
+    cube.vao  = genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 3*sizeof(float), (void*)0);
 
-    float vertices[] = MODEL_CUBE; vec3 cubes_pos[] = MODEL_10_CUBES_POS;
-    unsigned int vao, vbo;
-    size_t stride, off_pos, off_tex;
-    stride  = 5*sizeof(float);
-    off_pos = 0;
-    off_tex = 3*sizeof(float);
-    glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)off_pos);
-    glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, (void*)off_tex);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    // light and cube pos&shape
+    glm_mat4_identity(light.transform->m);
+    glm_translate(light.transform->m, light.pos);
+    glm_scale(light.transform->m, light.scale);
+
+    // use color lighting
+    glUseProgram(shader_light);
+    setUniform(shader_light, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
+    setUniform(shader_light, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
 
     glEnable(GL_DEPTH_TEST); // allows testing for z-bufer
     // met la souris au centre et l'empêche de sortir
@@ -92,43 +87,24 @@ int main(int argc, char const *argv[])
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shader_program);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glUseProgram(shader_light);
+        glBindVertexArray(light.vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        glUseProgram(shader_cube);
+        glBindVertexArray(cube.vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // process
         updateCamera();
+        updateUniformMatrix(cam.view, 0);
 
         // render
-        glBindVertexArray(vao);
-        for (int i=0; i<10; i++)
-        {
-            glm_mat4_identity(model.m);
-            glm_translate(model.m, cubes_pos[i]);
-            float angle = 20.0f * i;
-            glm_rotate(model.m, glm_rad(angle)*current_frame, (vec3){1.0f, 0.3f, 0.5f});
-            updateUniformMatrix(model, 0);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
         msleep(16);
     }
-
-    // dealocating
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
- 
     glfwTerminate();
-
     return 0;
 }
-
-/* fn help
- * glVertexAttribPointer(attribute position, 
- *                       number of elements, 
- *                       element type, 
- *                       normalize, 
- *                       stride,
- *                       offset) 
- */

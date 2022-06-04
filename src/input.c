@@ -96,12 +96,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void mouse_callback(GLFWwindow* window, double x, double y)
 {
 
-    if (unlikely(first_mouse))
-    {
-        cursor_lastx = x;
-        cursor_lasty = y;
-        first_mouse = false;
-    }
+    // if (unlikely(first_mouse))
+    // {
+    //     cursor_lastx = x;
+    //     cursor_lasty = y;
+    //     first_mouse = false;
+    // }
 
     float offx = (x-cursor_lastx)*sensitivity;
     float offy = (y-cursor_lasty)*sensitivity;

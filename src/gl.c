@@ -17,7 +17,7 @@ int initGLAD(GLint x, GLint y, GLsizei width, GLsizei height)
     return 0;
 }
 
-unsigned int FILE2shader(const char *file_path, GLenum shader_type)
+unsigned int file2shader(const char *file_path, GLenum shader_type)
 {
     int success;
     unsigned int shader; // id du shader
@@ -39,39 +39,39 @@ unsigned int FILE2shader(const char *file_path, GLenum shader_type)
         char info_log[512];
         glGetShaderInfoLog(shader, 512, NULL, info_log);
         fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", info_log));
-        return 1;
+        return 0;
     }
 
     return shader;
 }
 
-int linkShaders(unsigned int shader_program, int n, ...)
+unsigned int createShaderProgram(const char *vertex_shader, 
+                                 const char *fragment_shader)
 {
-    if (unlikely(!shader_program))
-        return 1;
-
-    va_list valist;
-    unsigned int i, s_id=0;
-    int success;
-    
-    va_start(valist, n);
-    for (i=0; i<n; i++)
+    unsigned int program=0, vs=0, fs=0;
+    int linked=0;
+    vs = file2shader(vertex_shader, GL_VERTEX_SHADER);
+    fs = file2shader(fragment_shader, GL_FRAGMENT_SHADER);
+    if (fs && vs)
     {
-        s_id = va_arg(valist, unsigned int);
-        glAttachShader(shader_program, s_id);
-        glDeleteShader(s_id);
-    }
-    glLinkProgram(shader_program);
+        program = glCreateProgram();
+        glAttachShader(program, vs);
+        glAttachShader(program, fs);
+        glLinkProgram(program);
 
-    glGetShaderiv(shader_program, GL_LINK_STATUS, &success);
-    if (unlikely(!success))
-    {
-        char info_log[512];
-        glGetShaderInfoLog(shader_program, 512, NULL, info_log);
-        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", info_log));
-        return 1;
+        glGetShaderiv(program, GL_LINK_STATUS, &linked);
+        if (!linked)
+        {
+            char info_log[512];
+            glGetShaderInfoLog(program, 512, NULL, info_log);
+            fprintf(stderr, ERROR_MSG_LOG("failed shader linking", info_log));
+            glDeleteShader(vs);
+            glDeleteShader(fs);
+            return 0;
+        }
+        return program;
     }
-
+    fprintf(stderr, ERROR_MSG_LOG("one of the shaders is invalid", "vs: %d, %s\t;fs: %d, %s\n"));
     return 0;
 }
 
@@ -171,7 +171,7 @@ unsigned int setUniform(unsigned int shader_program, int type,
     return uni_location;
 }
 
-unsigned int FILE2texture(const char *img_path, GLenum color_format, 
+unsigned int file2texture(const char *img_path, GLenum color_format, 
                           GLenum texture_type)
 {
     stbi_set_flip_vertically_on_load(true);
@@ -229,19 +229,24 @@ void setTextureParam(int n, unsigned int texture, GLenum texture_type, ...)
     }
 }
 
-mat4wloc createUniformMatrix(const char *uniform_name, 
-                             unsigned int shader_program)
+mat4wloc createUniformMatrix(const char *uniform_name, unsigned int n_programs,
+                             unsigned int *shader_programs)
 {
-    mat4wloc um4 =
+    mat4wloc um4 = {0};
+    for (int i=0; i<n_programs; i++)
     {
-        GLM_MAT4_IDENTITY_INIT, 
-        glGetUniformLocation(shader_program, uniform_name),
-        shader_program
-    };
+        um4.shader_programs[i] = shader_programs[i];
+        um4.uniform_locations[i] = 
+            glGetUniformLocation(shader_programs[i], uniform_name);
+    }
     return um4;
 }
 void updateUniformMatrix(mat4wloc um4, int transpose)
 {
-    glUseProgram(um4.shader_program);
-    glUniformMatrix4fv(um4.uniform_location, 1, transpose, (float*)(um4.m));
+    for (int i=0; i<um4.n_programs; i++)
+    {
+        glUseProgram(um4.shader_programs[i]);
+        glUniformMatrix4fv(um4.uniform_locations[i], 1, transpose, (float*)(um4.m));
+
+    }
 }
