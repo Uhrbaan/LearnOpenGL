@@ -32,12 +32,14 @@ int main(int argc, char const *argv[])
                      (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 1.0f);
 
     unsigned int shader_light, shader_cube;
-    if (!(shader_light = createShaderProgram("res/glsl/cube.vs", 
-                                             "res/glsl/light.fs")))
-        return 1;
-    if (!(shader_cube  = createShaderProgram("res/glsl/cube.vs",
-                                             "res/glsl/cube.fs")))
-        return 1;
+    // if (!(shader_light = createShaderProgram("res/glsl/cube.vs", 
+    //                                          "res/glsl/light.fs")))
+    //     return 1;
+    // if (!(shader_cube  = createShaderProgram("res/glsl/cube.vs",
+    //                                          "res/glsl/cube.fs")))
+    //     return 1;
+
+    shader_light
 
     // projection init
     unsigned int programs[] = {shader_light, shader_cube};
