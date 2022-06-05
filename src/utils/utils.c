@@ -19,7 +19,7 @@ int msleep(long msec) // sleep for msec miliseconds
     return res;
 }
 
-const char *FILE2str(const char *file_path)
+const char *file2str(const char *file_path)
 {
     char *buffer = NULL;
     long file_size=0;

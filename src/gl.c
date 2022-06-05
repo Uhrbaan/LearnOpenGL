@@ -23,7 +23,7 @@ unsigned int file2shader(const char *file_path, GLenum shader_type)
     unsigned int shader; // id du shader
     const char *shader_source;
     
-    shader_source = FILE2str(file_path);
+    shader_source = file2str(file_path);
     if (!shader_source)
         return 0; 
     shader = glCreateShader(shader_type); // crée un id pour le shader
@@ -34,14 +34,14 @@ unsigned int file2shader(const char *file_path, GLenum shader_type)
 
     // checking for compile errors
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (unlikely(!success))
+    if (!success)
     {
         char info_log[512];
         glGetShaderInfoLog(shader, 512, NULL, info_log);
         fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", info_log));
-        return 0;
+        shader = 0;
     }
-
+    free((char*)shader_source); // casting to non-const
     return shader;
 }
 
@@ -59,19 +59,25 @@ unsigned int createShaderProgram(const char *vertex_shader,
         glAttachShader(program, fs);
         glLinkProgram(program);
 
-        glGetShaderiv(program, GL_LINK_STATUS, &linked);
+        glGetProgramiv(program, GL_LINK_STATUS, &linked);
         if (!linked)
         {
             char info_log[512];
             glGetShaderInfoLog(program, 512, NULL, info_log);
             fprintf(stderr, ERROR_MSG_LOG("failed shader linking", info_log));
-            glDeleteShader(vs);
-            glDeleteShader(fs);
-            return 0;
+            program = 0;
         }
+        // freeing shaders
+        glDeleteShader(vs);
+        glDeleteShader(fs);
         return program;
     }
-    fprintf(stderr, ERROR_MSG_LOG("one of the shaders is invalid", "vs: %d, %s\t;fs: %d, %s\n"));
+    const char *s=NULL;
+    if (vs)
+        s=vertex_shader;
+    else
+        s=fragment_shader;
+    fprintf(stderr, ERROR_MSG_LOG("one of the shaders is invalid", s));
     return 0;
 }
 
@@ -233,6 +239,9 @@ mat4wloc createUniformMatrix(const char *uniform_name, unsigned int n_programs,
                              unsigned int *shader_programs)
 {
     mat4wloc um4 = {0};
+    um4.n_programs = n_programs;
+    um4.shader_programs = malloc(n_programs*sizeof(unsigned int));
+    um4.uniform_locations = malloc(n_programs*sizeof(unsigned int));
     for (int i=0; i<n_programs; i++)
     {
         um4.shader_programs[i] = shader_programs[i];
