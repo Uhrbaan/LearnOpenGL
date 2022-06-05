@@ -1,6 +1,12 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
  * lighting
- *  
+ *  - ambiant
+ *  - diffuse -> simulates where light comes from
+ *  - specular -> simulates bright spots on objects
+ *  -> combined (Phong)
+ * 
+ * STOPPED -> diffuse lighting 
+ * 
  */
 
 #define GLFW_INCLUDE_NONE
@@ -31,45 +37,54 @@ int main(int argc, char const *argv[])
     cam = initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, -1.0f}, 
                      (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 1.0f);
 
-    unsigned int shader_light, shader_cube;
-    if (!(shader_light = createShaderProgram("res/glsl/cube.vs", 
-                                             "res/glsl/light.fs")))
+    unsigned int light_src, light_illuminated;
+    if (!(light_src = createShaderProgram("res/glsl/cube.vs", 
+                                          "res/glsl/cube.fs")))
         return 1;
-    if (!(shader_cube  = createShaderProgram("res/glsl/cube.vs",
-                                             "res/glsl/cube.fs")))
+    if (!(light_illuminated  = createShaderProgram("res/glsl/light.vs",
+                                                   "res/glsl/light.fs")))
         return 1;
 
     // projection init
-    unsigned int programs[] = {shader_light, shader_cube};
-    cam.view = createUniformMatrix("u_view", 2, programs);
-    cam.projection = createUniformMatrix("u_projection", 2, programs);
+    unsigned int programs[] = {light_src, light_illuminated};
+    cam.view = createUniformMatrix("view", 2, programs);
+    cam.projection = createUniformMatrix("projection", 2, programs);
     glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
     updateUniformMatrix(cam.projection, 0);
     
-    float vertices[] = MODEL_CUBE;
+    float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     model light = createModel((vec3){1.2f, 1.0f, 2.0f},
                               (vec3){0.2f, 0.2f, 0.2f}, 
-                              (vec3){0.0f, 0.0f, 0.0f},
-                              createUniformMatrix("u_transform", 1, 
-                                                  &shader_light),
+                              createUniformMatrix("model", 1, 
+                                                  &light_src),
                               genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
-                                     3*sizeof(float), (void*)0),
+                                     6*sizeof(float), (void*)0),
                               0),
           cube  = createModel((vec3){0.0f, 0.0f, 0.0f}, 
                               (vec3){1.0f, 1.0f, 1.0f}, 
-                              (vec3){0.0f, 0.0f, 0.0f}, 
-                              createUniformMatrix("u_transform", 1, 
-                                                  &shader_cube),
+                              createUniformMatrix("model", 1, 
+                                                  &light_illuminated),
                               genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
-                                     3*sizeof(float), (void*)0),
+                                     6*sizeof(float), (void*)0),
                               0);
+    glBindVertexArray(cube.vao);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, 6*sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexArrayAttrib(cube.vao, 1);
+
+    // give camera loc
+    glUseProgram(light_illuminated);
+    unsigned int cam_pos_loc;
+    cam_pos_loc = glGetUniformLocation(light_illuminated, "cam_pos");
+    glUniform3fv(cam_pos_loc, 1, cam.pos);
+
 
     // use colored lighting
-    glUseProgram(shader_light);
-    setUniform(shader_light, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
-    setUniform(shader_light, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
+    glUseProgram(light_illuminated);
+    setUniform(light_illuminated, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
+    setUniform(light_illuminated, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
+    setUniform(light_illuminated, GL_FLOAT_VEC3, "light_pos", light.pos[0], light.pos[1], light.pos[2]);
 
     glEnable(GL_DEPTH_TEST); // allows testing for z-bufer -> discard behind
     // met la souris au centre et l'empêche de sortir
@@ -89,8 +104,13 @@ int main(int argc, char const *argv[])
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderModel(light, shader_light, 0, 36);
-        renderModel(cube, shader_cube, 0, 36);
+        glUseProgram(light_illuminated);
+        glUniform3fv(cam_pos_loc, 1, cam.pos);
+
+        glm_rotate(cube.transform.m, glm_rad(sin(glfwGetTime())), (vec3){0.2f, 0.5f, 1.0f});
+
+        renderModel(light, light_src, 0, 36); // light represented by white cube
+        renderModel(cube, light_illuminated, 0, 36);
 
         // process
         updateCamera();

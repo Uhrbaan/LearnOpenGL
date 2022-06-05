@@ -6,10 +6,11 @@
 
 typedef struct model 
 {
-    vec3 pos, scale, rot;
+    vec3 pos, scale, rot_axis;
+    float rot_angle;
     mat4wloc transform;
     unsigned int vao, texture;
-    // render info
+    // render info 
     int offset; unsigned int vertices;
 } model;
 
@@ -25,7 +26,7 @@ unsigned int genVAO(unsigned int vbo,
                     size_t stride, 
                     void* offset);
 
-model createModel(vec3 pos, vec3 scale, vec3 rot, mat4wloc transform, 
+model createModel(vec3 pos, vec3 scale, mat4wloc transform, 
                   unsigned int vao, unsigned int texture);
 
 void renderModel(model model, unsigned int shader_program, int offset, 

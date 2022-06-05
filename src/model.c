@@ -29,13 +29,12 @@ unsigned int genVAO(unsigned int vbo,
     return vao;
 }
 
-model createModel(vec3 pos, vec3 scale, vec3 rot, mat4wloc transform, 
+model createModel(vec3 pos, vec3 scale, mat4wloc transform, 
                   unsigned int vao, unsigned int texture)
 {
     model model = {0};
     memcpy(model.pos, pos, sizeof(vec3));
     memcpy(model.scale, scale, sizeof(vec3));
-    memcpy(model.rot, rot, sizeof(vec3));
     model.transform = transform;
     model.vao = vao;
     model.texture = texture;
@@ -48,8 +47,8 @@ model createModel(vec3 pos, vec3 scale, vec3 rot, mat4wloc transform,
 void renderModel(model model, unsigned int shader_program, int offset, 
                  unsigned int nvertices)
 {
-    glUseProgram(shader_program);
     updateUniformMatrix(model.transform, 0);
+    glUseProgram(shader_program);
     glBindVertexArray(model.vao);
     glDrawArrays(GL_TRIANGLES, offset, nvertices);
 }
