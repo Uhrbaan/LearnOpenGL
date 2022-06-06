@@ -29,7 +29,7 @@ void main()
     vec3 cam_direction = normalize(cam_pos-frag_pos);
     vec3 reflect_dir = reflect(-light_direction, norm);
     // the pow (val, n) where n is the shininess
-    float spec = pow(max(dot(cam_direction, reflect_dir), 0.0), 32);
+    float spec = pow(max(dot(cam_direction, reflect_dir), 0.0), 256);
     vec3 specular = specular_strength*spec*light_color;
 
     vec3 result = (diffuse + ambiant + specular) * object_color;

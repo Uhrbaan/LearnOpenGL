@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
     float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    model light = createModel((vec3){1.2f, 1.0f, 2.0f},
+    model light = createModel((vec3){0.0f, 0.0f, 0.0f},
                               (vec3){0.2f, 0.2f, 0.2f}, 
                               createUniformMatrix("model", 1, 
                                                   &light_src),
@@ -75,7 +75,7 @@ int main(int argc, char const *argv[])
 
     // give camera loc
     glUseProgram(light_illuminated);
-    unsigned int cam_pos_loc;
+    unsigned int cam_pos_loc, light_pos_loc;
     cam_pos_loc = glGetUniformLocation(light_illuminated, "cam_pos");
     glUniform3fv(cam_pos_loc, 1, cam.pos);
 
@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
     glUseProgram(light_illuminated);
     setUniform(light_illuminated, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
     setUniform(light_illuminated, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
-    setUniform(light_illuminated, GL_FLOAT_VEC3, "light_pos", light.pos[0], light.pos[1], light.pos[2]);
+    light_pos_loc = setUniform(light_illuminated, GL_FLOAT_VEC3, "light_pos", light.pos[0], light.pos[1], light.pos[2]);
 
     glEnable(GL_DEPTH_TEST); // allows testing for z-bufer -> discard behind
     // met la souris au centre et l'empêche de sortir
@@ -106,8 +106,13 @@ int main(int argc, char const *argv[])
 
         glUseProgram(light_illuminated);
         glUniform3fv(cam_pos_loc, 1, cam.pos);
+        glUniform3fv(light_pos_loc, 1, light.pos);
 
         glm_rotate(cube.transform.m, glm_rad(sin(glfwGetTime())), (vec3){0.2f, 0.5f, 1.0f});
+        // making light circle around cube
+        glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, 0.5f}, light.pos);
+        glm_mat4_identity(light.transform.m);
+        glm_translate(light.transform.m, light.pos);
 
         renderModel(light, light_src, 0, 36); // light represented by white cube
         renderModel(cube, light_illuminated, 0, 36);
