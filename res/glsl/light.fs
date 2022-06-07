@@ -1,36 +1,37 @@
-#version 460 core
+#version 330 core
 out vec4 FragColor;
 
-in vec3 normal;
-in vec3 frag_pos;
-in vec3 light_pos;
+in vec3 FragPos;
+in vec3 Normal;
+in vec3 Light_pos;   // extra in variable, since we need the light position in view space we calculate this in the vertex shader
 
-uniform vec3 object_color;
 uniform vec3 light_color;
+uniform vec3 object_color;
+
+vec3 ambiant(float intensity)
+{
+
+}
 
 void main()
 {
-    // ambiant
-    float ambiant_strength = 0.3; // ambiant lighting
-    vec3 ambiant = light_color*ambiant_strength;
-
+    // ambient
+    float ambientStrength = 0.3;
+    vec3 ambient = ambientStrength * light_color;    
+    
     // diffuse
-    vec3 norm = normalize(normal); // norm because only direction is important
-    vec3 light_direction = normalize(light_pos-frag_pos);
-    /* getting brightness value by calculating the dot product between the light
-     * direction & the cube's face normal. 
-     * the dot product approaches 0 as angle -> 90° */
-    float diff = max(dot(norm, light_direction), 0.0); 
-    vec3 diffuse = diff*light_color;
-
-    //specular -> viewspace
-    float specular_strenght = 1.0, shininess = 256;
-    vec3 light_dir   = normalize(light_pos-frag_pos);
-    vec3 reflect_dir = reflect(-light_dir, norm);
-    vec3 view_dir    = normalize(-frag_pos);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
-    vec3 specular = light_color*spec;
-
-    vec3 result = (diffuse + ambiant + specular) * object_color;
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(Light_pos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * light_color;
+    
+    // specular
+    float specularStrength = 0.5;
+    vec3 viewDir = normalize(-FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir is (0,0,0) - Position => -Position
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    vec3 specular = specularStrength * spec * light_color; 
+    
+    vec3 result = (ambient + diffuse + specular) * object_color;
     FragColor = vec4(result, 1.0);
 }

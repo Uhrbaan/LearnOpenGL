@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
     glUseProgram(light_illuminated);
     setUniform(light_illuminated, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
     setUniform(light_illuminated, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
-    light_pos_loc = setUniform(light_illuminated, GL_FLOAT_VEC3, "u_light_pos", light.pos[0], light.pos[1], light.pos[2]);
+    light_pos_loc = setUniform(light_illuminated, GL_FLOAT_VEC3, "light_pos", light.pos[0], light.pos[1], light.pos[2]);
 
     glEnable(GL_DEPTH_TEST); // allows testing for z-bufer -> discard behind
     // met la souris au centre et l'empêche de sortir
