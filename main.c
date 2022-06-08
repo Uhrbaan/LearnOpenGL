@@ -5,7 +5,7 @@
  *  - specular -> simulates bright spots on objects
  *  -> combined (Phong)
  * 
- * STOPPED -> diffuse lighting 
+ * 
  * 
  */
 
@@ -24,6 +24,7 @@
 #include "src/input.h"
 #include "src/camera.h"
 #include "src/model.h"
+#include "src/lighting.h"
 
 const float SCR_W = 800.0f;
 const float SCR_H = 600.0f;
@@ -37,6 +38,7 @@ int main(int argc, char const *argv[])
     cam = initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, -1.0f}, 
                      (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 1.0f);
 
+    // shaders
     unsigned int light_src, light_illuminated;
     if (!(light_src = createShaderProgram("res/glsl/cube.vs", 
                                           "res/glsl/cube.fs")))
@@ -52,16 +54,35 @@ int main(int argc, char const *argv[])
     glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
     updateUniformMatrix(cam.projection, 0);
     
+    // material
+    Material material = {
+        {0.5f, 0.25f, 0.155f},// ambiant
+        {1.0f, 0.5f, 0.31f},// diffuse
+        {0.5f, 0.5f, 0.50f},// specular
+        32.0f,              // shininess
+        light_illuminated   // shader_program
+    };
+    updateMaterial(material);
+    Light light = {
+        {0.2f, 0.5f, 1.2f}, // pos
+        {0.2f, 0.2f, 0.2f}, // ambiant
+        {0.5f, 0.5f, 0.5f}, // diffuse
+        {1.0f, 1.0f, 1.0f}, // specular
+        light_illuminated   // shader_program
+    };
+    updateLight(light);
+
+    // models
     float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    model light = createModel((vec3){0.2f, 0.5f, 1.2f},
-                              (vec3){0.2f, 0.2f, 0.2f}, 
-                              createUniformMatrix("model", 1, 
-                                                  &light_src),
-                              genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
-                                     6*sizeof(float), (void*)0),
-                              0),
+    model light_cube = createModel((vec3){light.position[0], light.position[1], light.position[2]},
+                                   (vec3){0.2f, 0.2f, 0.2f}, 
+                                   createUniformMatrix("model", 1, 
+                                                       &light_src),
+                                   genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
+                                           6*sizeof(float), (void*)0),
+                                   0),
           cube  = createModel((vec3){0.0f, 0.0f, 0.0f}, 
                               (vec3){1.0f, 1.0f, 1.0f}, 
                               createUniformMatrix("model", 1, 
@@ -69,25 +90,18 @@ int main(int argc, char const *argv[])
                               genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
                                      6*sizeof(float), (void*)0),
                               0);
+    // set normals to cube sides
     glBindVertexArray(cube.vao);
     glVertexAttribPointer(1, 3, GL_FLOAT, false, 6*sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexArrayAttrib(cube.vao, 1);
 
-    // give camera loc
-    glUseProgram(light_illuminated);
-    unsigned int cam_pos_loc, light_pos_loc;
+    // send camera pos
+    unsigned int cam_pos_loc;
     cam_pos_loc = glGetUniformLocation(light_illuminated, "cam_pos");
-    glUniform3fv(cam_pos_loc, 1, cam.pos);
 
-
-    // use colored lighting
-    glUseProgram(light_illuminated);
-    setUniform(light_illuminated, GL_FLOAT_VEC3, "object_color", 1.0f, 0.5f, 0.31f);
-    setUniform(light_illuminated, GL_FLOAT_VEC3, "light_color", 1.0f, 1.0f, 1.0f);
-    light_pos_loc = setUniform(light_illuminated, GL_FLOAT_VEC3, "light_pos", light.pos[0], light.pos[1], light.pos[2]);
-
-    glEnable(GL_DEPTH_TEST); // allows testing for z-bufer -> discard behind
-    // met la souris au centre et l'empêche de sortir
+    // allows z-buffer testing-> discard behind
+    glEnable(GL_DEPTH_TEST);
+    // disable cursor
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     while(!glfwWindowShouldClose(window))
     {
@@ -104,15 +118,17 @@ int main(int argc, char const *argv[])
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(light_illuminated);
-        glUniform3fv(light_pos_loc, 1, light.pos);
-
+        
         // making light circle around cube
-        // glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, sin(current_frame)*4}, light.pos);
-        // glm_mat4_identity(light.transform.m);
-        // glm_translate(light.transform.m, light.pos);
+        glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, sin(current_frame)*4}, light_cube.pos);
+        glm_mat4_identity(light_cube.transform.m);
+        glm_translate(light_cube.transform.m, light_cube.pos);
+        // update light source position
+        memcpy(light.position, light_cube.pos, sizeof(vec3));
+        updateLight(light);
+        glUniform3fv(cam_pos_loc, 1, cam.pos);
 
-        renderModel(light, light_src, 0, 36); // light represented by white cube
+        renderModel(light_cube, light_src, 0, 36); // light represented by white cube
         renderModel(cube, light_illuminated, 0, 36);
 
         // process

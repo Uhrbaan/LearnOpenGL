@@ -1,37 +1,47 @@
-#version 330 core
+#version 460 core
 out vec4 FragColor;
 
-in vec3 FragPos;
+in vec3 frag_pos;
 in vec3 Normal;
-in vec3 Light_pos;   // extra in variable, since we need the light position in view space we calculate this in the vertex shader
 
-uniform vec3 light_color;
-uniform vec3 object_color;
-
-vec3 ambiant(float intensity)
+struct Material
 {
+    vec3 ambiant;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+uniform Material material;
+struct Light
+{
+    vec3 position;
+    
+    vec3 ambiant;
+    vec3 diffuse;
+    vec3 specular;
+};
+uniform Light light;
+uniform vec3 cam_pos;
 
-}
 
 void main()
 {
+    vec3 norm = normalize(Normal);
+    vec3 light_dir = normalize(light.position - frag_pos);
+    vec3 view_dir = normalize(cam_pos-frag_pos);
+    
     // ambient
-    float ambientStrength = 0.3;
-    vec3 ambient = ambientStrength * light_color;    
+    vec3 ambient = light.ambiant * material.ambiant;
     
     // diffuse
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(Light_pos - FragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * light_color;
+    float diff = max(dot(norm, light_dir), 0.0);
+    vec3 diffuse = light.diffuse * (diff * material.diffuse);
     
     // specular
-    float specularStrength = 0.5;
-    vec3 viewDir = normalize(-FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir is (0,0,0) - Position => -Position
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * light_color; 
+    vec3 reflect_dir = reflect(-light_dir, norm);
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * material.specular);
     
-    vec3 result = (ambient + diffuse + specular) * object_color;
+    vec3 result = (ambient + diffuse + specular);
     FragColor = vec4(result, 1.0);
 }
