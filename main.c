@@ -77,6 +77,7 @@ int main(int argc, char const *argv[])
         {0.3f, 0.3f, 0.3f}, // ambiant
         {0.8f, 0.8f, 0.8f}, // diffuse
         {1.0f, 1.0f, 1.0f}, // specular
+        1.0f, 0.09f, 0.032f,// attenuation
         light_illuminated   // shader_program
     };
     updateLight(light);
@@ -147,7 +148,7 @@ int main(int argc, char const *argv[])
         // // update light source position
         // memcpy(light.position, light_cube.pos, sizeof(vec3));
         // updateLight(light);
-        // renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+        renderModel(light_cube, light_src, 0, 36); // light represented by white cube
 
         // render multiple objects
         for(unsigned int i = 0; i < 10; i++)

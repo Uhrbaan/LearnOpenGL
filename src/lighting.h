@@ -14,10 +14,15 @@ typedef struct
 typedef struct
 {
     vec3 position;
+
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 
+    // for light attenuation -> F=1/(Kc + Kl·d + Kq·d²)
+    float constant;
+    float linear;
+    float quadratic;
     unsigned int shader_program;
 } Light;
 

@@ -14,14 +14,22 @@ void updateMaterial(Material material)
 void updateLight(Light light)
 {
     glUseProgram(light.shader_program);
-    unsigned int pos, ambient, diffuse, specular;
+    unsigned int pos, ambient, diffuse, specular, constant, linear, quadratic;
     pos=glGetUniformLocation(light.shader_program,"light.position");
     ambient = glGetUniformLocation(light.shader_program, "light.ambient");
     diffuse = glGetUniformLocation(light.shader_program, "light.diffuse");
     specular=glGetUniformLocation(light.shader_program, "light.specular");
 
+    constant=glGetUniformLocation(light.shader_program,"light.constant");
+    linear=glGetUniformLocation(light.shader_program,"light.linear");
+    quadratic=glGetUniformLocation(light.shader_program,"light.quadratic");
+
     glUniform3fv(pos, 1, light.position);
     glUniform3fv(ambient, 1, light.ambient);
     glUniform3fv(diffuse, 1, light.diffuse);
     glUniform3fv(specular, 1, light.specular);
+
+    glUniform1f(constant, light.constant);
+    glUniform1f(linear, light.linear);
+    glUniform1f(quadratic, light.quadratic);
 }
