@@ -56,17 +56,17 @@ int main(int argc, char const *argv[])
     
     // material
     Material material = {
-        {0.5f, 0.25f, 0.155f},// ambiant
-        {1.0f, 0.5f, 0.31f},// diffuse
-        {0.5f, 0.5f, 0.50f},// specular
-        32.0f,              // shininess
+        {0.5f, 0.2f, 0.2f},// ambiant
+        {1.0f, 0.3f, 0.3f},// diffuse
+        {1.0f, 0.5f, 0.5f},// specular
+        64.0f,              // shininess
         light_illuminated   // shader_program
     };
     updateMaterial(material);
     Light light = {
         {0.2f, 0.5f, 1.2f}, // pos
-        {0.2f, 0.2f, 0.2f}, // ambiant
-        {0.5f, 0.5f, 0.5f}, // diffuse
+        {0.5f, 0.5f, 0.5f}, // ambiant
+        {1.0f, 1.0f, 1.0f}, // diffuse
         {1.0f, 1.0f, 1.0f}, // specular
         light_illuminated   // shader_program
     };
