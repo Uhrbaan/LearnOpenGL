@@ -15,17 +15,15 @@ struct Material
 uniform Material material;
 struct Light
 {
-    vec3 position; // not necessary if directional light
-    // vec3 direction; // for directional lighting -> when "ifninitly" far away
+    vec3 position, direction;
     
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec3 ambient, diffuse, specular;
+
+    // spotlight
+    float cutoff, outer_cutoff;
 
     // attenuation over distance
-    float constant;
-    float linear;
-    float quadratic;
+    float constant, linear, quadratic;
 };
 uniform Light light;
 uniform vec3 cam_pos;
@@ -43,13 +41,20 @@ void main()
     // diffuse
     float diff = max(dot(norm, light_dir), 0.0);
     vec3 diffuse = light.diffuse * diff * 
-                   vec3(texture(material.diffuse, texture_coo));
+                vec3(texture(material.diffuse, texture_coo));
     
     // specular
     vec3 reflect_dir = reflect(-light_dir, norm);
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
     vec3 specular = light.specular * spec * 
                     texture(material.specular, texture_coo).rgb;
+
+    // spotlight (soft edges) | to make spotlight smooth -> I=(𝜃-𝛾)/𝜀
+    float theta = dot(light_dir, normalize(-light.direction));
+    float epsilon = light.cutoff - light.outer_cutoff;
+    float intensity = clamp((theta-light.outer_cutoff)/epsilon, 0.0, 1.0);
+    diffuse *= intensity;
+    specular*= intensity;
 
     // attenuation -> F=1/(Kc + Kl·d + Kq·d²)
     float d = length(light.position-frag_pos);

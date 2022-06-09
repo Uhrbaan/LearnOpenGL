@@ -74,7 +74,7 @@ int main(int argc, char const *argv[])
     updateMaterial(material);
     Light light = {
         {0.3f, 0.5f, 1.4f}, // pos
-        {0.3f, 0.3f, 0.3f}, // ambiant
+        {0.1f, 0.1f, 0.1f}, // ambiant
         {0.8f, 0.8f, 0.8f}, // diffuse
         {1.0f, 1.0f, 1.0f}, // specular
         1.0f, 0.09f, 0.032f,// attenuation
@@ -148,7 +148,12 @@ int main(int argc, char const *argv[])
         // // update light source position
         // memcpy(light.position, light_cube.pos, sizeof(vec3));
         // updateLight(light);
-        renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+        // renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+
+        setUniform(light_illuminated, GL_FLOAT_VEC3, "light.position", cam.pos[0], cam.pos[1], cam.pos[2]);
+        setUniform(light_illuminated, GL_FLOAT_VEC3, "light.direction", cam.z[0], cam.z[1], cam.z[2]);
+        setUniform(light_illuminated, GL_FLOAT, "light.cutoff", cos(glm_rad(12.5f)));
+        setUniform(light_illuminated, GL_FLOAT, "light.outer_cutoff", cos(glm_rad(18.0f)));
 
         // render multiple objects
         for(unsigned int i = 0; i < 10; i++)
