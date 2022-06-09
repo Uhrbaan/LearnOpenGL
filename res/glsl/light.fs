@@ -15,7 +15,8 @@ struct Material
 uniform Material material;
 struct Light
 {
-    vec3 position;
+    // vec3 position; // not necessary if directional light
+    vec3 direction; // for directional lighting -> when "ifninitly" far away
     
     vec3 ambient;
     vec3 diffuse;
@@ -28,12 +29,13 @@ uniform vec3 cam_pos;
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 light_dir = normalize(light.position - frag_pos);
+    // vec3 light_dir = normalize(light.position - frag_pos);
+    vec3 light_dir = normalize(-light.direction);
     vec3 view_dir = normalize(cam_pos-frag_pos);
     
     // ambient
     vec3 ambient = light.ambient * texture(material.diffuse, texture_coo).rgb
-                   + texture(material.emission, texture_coo).rgb;
+                   + texture(material.emission, texture_coo).rgb/4;
     
     // diffuse
     float diff = max(dot(norm, light_dir), 0.0);

@@ -4,6 +4,7 @@
  *  - diffuse -> simulates where light comes from
  *  - specular -> simulates bright spots on objects
  *  -> combined (Phong)
+ *  - directional light(16.1)
  * 
  * 
  * 
@@ -73,15 +74,17 @@ int main(int argc, char const *argv[])
     updateMaterial(material);
     Light light = {
         {0.3f, 0.5f, 1.4f}, // pos
-        {0.5f, 0.5f, 0.5f}, // ambiant
+        {0.3f, 0.3f, 0.3f}, // ambiant
         {0.8f, 0.8f, 0.8f}, // diffuse
         {1.0f, 1.0f, 1.0f}, // specular
         light_illuminated   // shader_program
     };
     updateLight(light);
+    setUniform(light_illuminated, GL_FLOAT_VEC3, "light.direction", -0.2f, -1.0f, -0.3f);
 
 // models
     float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
+    vec3 cube_pos[] = MODEL_10_CUBES_POS;
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     
@@ -144,15 +147,25 @@ int main(int argc, char const *argv[])
         // // update light source position
         // memcpy(light.position, light_cube.pos, sizeof(vec3));
         // updateLight(light);
-        renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+        // renderModel(light_cube, light_src, 0, 36); // light represented by white cube
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, material.diffuse_map);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, material.specular_map);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, material.emission_map);
-        renderModel(cube, light_illuminated, 0, 36);
+        // render multiple objects
+        for(unsigned int i = 0; i < 10; i++)
+        {
+            glm_mat4_identity(cube.transform.m);
+            glm_translate(cube.transform.m, cube_pos[i]);
+            float angle = 20.0f * i;
+            glm_rotate(cube.transform.m, glm_rad(angle), (vec3){1.0f, 0.3f, 0.5f});
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, material.diffuse_map);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, material.specular_map);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, material.emission_map);
+            renderModel(cube, light_illuminated, 0, 36);
+        }
+
 
         // process
         updateCamera();

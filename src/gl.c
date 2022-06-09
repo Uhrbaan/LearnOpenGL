@@ -256,6 +256,5 @@ void updateUniformMatrix(mat4wloc um4, int transpose)
     {
         glUseProgram(um4.shader_programs[i]);
         glUniformMatrix4fv(um4.uniform_locations[i], 1, transpose, (float*)(um4.m));
-
     }
 }
