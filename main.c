@@ -72,16 +72,64 @@ int main(int argc, char const *argv[])
         light_illuminated   // shader_program
     };
     updateMaterial(material);
-    Light light = {
-        {0.3f, 0.5f, 1.4f}, // pos
-        {0.1f, 0.1f, 0.1f}, // ambiant
-        {0.8f, 0.8f, 0.8f}, // diffuse
-        {1.0f, 1.0f, 1.0f}, // specular
-        1.0f, 0.09f, 0.032f,// attenuation
-        light_illuminated   // shader_program
+    Directional_light dir_light = {
+        {-0.2f, -1.0f, -0.3f},
+        { 0.2f,  0.2f,  0.2f},
+        { 0.8f,  0.8f,  0.8f},
+        { 1.0f,  1.0f,  1.0f},
+        light_illuminated    
     };
-    updateLight(light);
-    setUniform(light_illuminated, GL_FLOAT_VEC3, "light.direction", -0.2f, -1.0f, -0.3f);
+    Point_light pt_lights[4] = {
+        {
+            {0.7f, 0.2f, 2.0f},
+            {0.2f, 0.2f, 0.2f},
+            {0.5f, 0.5f, 0.5f},
+            {0.9f, 0.9f, 0.9f},
+            1.0f, 0.35f, 0.44f, 
+            light_illuminated
+        },
+        {
+            {2.3f, -3.3f, -4.0f},
+            {0.2f, 0.2f, 0.2f},
+            {0.7f, 0.9f, 0.8f},
+            {0.8f, 1.0f, 0.9f},
+            1.0f, 0.09f, 0.032f,
+            light_illuminated
+        },
+        {
+            {-4.0f, 2.0f, -12.0f},
+            {0.5f, 0.5f, 0.3f},
+            {1.0f, 1.0f, 0.9f},
+            {1.0f, 1.0f, 1.0f},
+            1.0f, 0.07f, 0.017f,
+            light_illuminated
+        },
+        {
+            {0.0f, 0.0f, -3.0f},
+            {0.3f, 0.1f, 0.1f},
+            {0.7f, 0.4f, 0.4f},
+            {1.0f, 0.7f, 0.7f},
+            1.0f, 0.22f, 0.20f,
+            light_illuminated
+        }
+    };
+    Spot_light spotlight = {
+        {cam.pos[0], cam.pos[1], cam.pos[2]},
+        {cam.z[0], cam.z[1], cam.z[2]},
+        {0.2f, 0.2f, 0.2f},
+        {0.8f, 0.8f, 0.8f},
+        {1.0f, 1.0f, 1.0f},
+        1.0f, 0.09f, 0.032f,
+        cos(glm_rad(12.5f)), cos(glm_rad(17.5f)),
+        light_illuminated
+    };
+
+    updateLight(&dir_light, "dir_light", DIRECTIONAL);
+    updateLight(&pt_lights[0], "pt_lights[0]", POINT);
+    updateLight(&pt_lights[1], "pt_lights[1]", POINT);
+    updateLight(&pt_lights[2], "pt_lights[2]", POINT);
+    updateLight(&pt_lights[3], "pt_lights[3]", POINT);
+    updateLight(&spotlight, "spotlight", SPOT);
 
 // models
     float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
@@ -89,10 +137,10 @@ int main(int argc, char const *argv[])
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     
-    model light_cube, cube, box;
+    model light_cube, cube;
     light_cube = createModel(
-        (vec3){light.position[0], light.position[1], light.position[2]},
-        (vec3){0.2f, 0.2f, 0.2f}, 
+        (vec3){0.0f, 0.0f, 0.0f},
+        (vec3){0.1f, 0.1f, 0.1f}, 
         createUniformMatrix("model", 1, &light_src),
         genVAO(vbo, 0, 1, 
                0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0)
@@ -106,15 +154,6 @@ int main(int argc, char const *argv[])
                0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0,
                1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)),
                2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)))
-        );
-
-    box = createModel(
-        (vec3){0.0f, 0.0f, 4.0f},
-        (vec3){1.2f, 1.2f, 1.2f},
-        createUniformMatrix("model", 1, &light_illuminated),
-        genVAO(vbo, 0, 1,
-               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0,
-               1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)))
         );
 
     // send camera pos
@@ -149,14 +188,22 @@ int main(int argc, char const *argv[])
         // memcpy(light.position, light_cube.pos, sizeof(vec3));
         // updateLight(light);
         // renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+        
+        // move flashlight
+        glUseProgram(spotlight.shader_program);
+        glUniform3fv(spotlight.arr[0], 1, cam.pos);
+        glUniform3fv(spotlight.arr[1], 1, cam.z);
 
-        setUniform(light_illuminated, GL_FLOAT_VEC3, "light.position", cam.pos[0], cam.pos[1], cam.pos[2]);
-        setUniform(light_illuminated, GL_FLOAT_VEC3, "light.direction", cam.z[0], cam.z[1], cam.z[2]);
-        setUniform(light_illuminated, GL_FLOAT, "light.cutoff", cos(glm_rad(12.5f)));
-        setUniform(light_illuminated, GL_FLOAT, "light.outer_cutoff", cos(glm_rad(18.0f)));
+        for (int i=0; i<4; i++)
+        {
+            glm_mat4_identity(light_cube.transform.m);
+            glm_translate(light_cube.transform.m, pt_lights[i].position);
+            glm_scale(light_cube.transform.m, light_cube.scale);
+            renderModel(light_cube, light_src, 0, 36);
+        }
 
         // render multiple objects
-        for(unsigned int i = 0; i < 10; i++)
+        for(int i=0; i<10; i++)
         {
             glm_mat4_identity(cube.transform.m);
             glm_translate(cube.transform.m, cube_pos[i]);

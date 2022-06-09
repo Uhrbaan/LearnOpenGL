@@ -94,7 +94,6 @@
                                { 1.5f,  0.2f, -1.5f},\
                                {-1.3f,  1.0f, -1.5f}}
 
-
                                    // vertices.........  // normal.........  // texture 
 #define MODEL_CUBE_NORMAL_TEXTURE {-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f,\
                                     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f,\

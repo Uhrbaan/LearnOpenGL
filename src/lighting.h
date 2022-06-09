@@ -3,6 +3,13 @@
 
 #include <cglm/cglm.h>
 
+enum EnumLIGHT
+{
+    DIRECTIONAL,
+    POINT,
+    SPOT
+};
+
 typedef struct
 {
     unsigned int diffuse_map, specular_map, emission_map;
@@ -11,22 +18,37 @@ typedef struct
     unsigned int shader_program;
 } Material;
 
-typedef struct
+typedef struct 
+{
+    vec3 direction;
+    vec3 ambient, diffuse, specular;
+
+    unsigned int shader_program;
+    unsigned int arr[4];
+} Directional_light; 
+
+typedef struct 
 {
     vec3 position;
+    vec3 ambient, diffuse, specular;
+    float constant, linear, quadratic;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-
-    // for light attenuation -> F=1/(Kc + Kl·d + Kq·d²)
-    float constant;
-    float linear;
-    float quadratic;
     unsigned int shader_program;
-} Light;
+    unsigned int arr[7];
+} Point_light; 
+
+typedef struct 
+{
+    vec3 position, direction;
+    vec3 ambient, diffuse, specular;
+    float constant, linear, quadratic;
+    float cutoff, outer_cutoff;
+
+    unsigned int shader_program;
+    unsigned int arr[10];
+} Spot_light; 
 
 void updateMaterial(Material material);
-void updateLight(Light light);
-
+// returns the uniform locations in order
+void updateLight(void* p, const char *uniform_name, enum EnumLIGHT type);
 #endif

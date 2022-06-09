@@ -1,5 +1,6 @@
 #include "lighting.h"
 #include "gl.h"
+#include <string.h>
 
 void updateMaterial(Material material)
 {
@@ -11,25 +12,112 @@ void updateMaterial(Material material)
     setUniform(material.shader_program, GL_INT, "material.emission", 2);
 }
 
-void updateLight(Light light)
+void updateLight(void* p, const char *uniform_name, enum EnumLIGHT type)
 {
-    glUseProgram(light.shader_program);
-    unsigned int pos, ambient, diffuse, specular, constant, linear, quadratic;
-    pos=glGetUniformLocation(light.shader_program,"light.position");
-    ambient = glGetUniformLocation(light.shader_program, "light.ambient");
-    diffuse = glGetUniformLocation(light.shader_program, "light.diffuse");
-    specular=glGetUniformLocation(light.shader_program, "light.specular");
+    char str[100]={0}; int len=strlen(uniform_name);
+    memcpy(str, uniform_name, sizeof(char)*len);
+    str[len] = '.';
+    switch (type)
+    {
+        case DIRECTIONAL:
+        {
+            Directional_light *l = p;
+            unsigned int arr[4];
+            glUseProgram(l->shader_program);
+            memcpy(&str[len+1], "direction", sizeof "direction");
+            arr[0] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "ambient", sizeof "ambient");
+            arr[1] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "diffuse", sizeof "diffuse");
+            arr[2] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "specular", sizeof "specular");
+            arr[3] = glGetUniformLocation(l->shader_program, str);
+            glUniform3fv(arr[0], 1, l->direction);
+            glUniform3fv(arr[1], 1, l->ambient);
+            glUniform3fv(arr[2], 1, l->diffuse);
+            glUniform3fv(arr[3], 1, l->specular);
+            memcpy(l->arr, arr, sizeof(arr));
+            break;
+        }
+        case POINT:
+        {
+            Point_light *l = p;
+            glUseProgram(l->shader_program);
+            unsigned int arr[7];
+            memcpy(&str[len+1], "position", sizeof "position");
+            arr[0]=glGetUniformLocation(l->shader_program, str);
 
-    constant=glGetUniformLocation(light.shader_program,"light.constant");
-    linear=glGetUniformLocation(light.shader_program,"light.linear");
-    quadratic=glGetUniformLocation(light.shader_program,"light.quadratic");
+            memcpy(&str[len+1], "ambient", sizeof "ambient");
+            arr[1] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "diffuse", sizeof "ambient");
+            arr[2] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "specular", sizeof "specular");
+            arr[3]=glGetUniformLocation(l->shader_program, str);
 
-    glUniform3fv(pos, 1, light.position);
-    glUniform3fv(ambient, 1, light.ambient);
-    glUniform3fv(diffuse, 1, light.diffuse);
-    glUniform3fv(specular, 1, light.specular);
+            memcpy(&str[len+1], "constant", sizeof "constant");
+            arr[4]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "linear", sizeof "linear");
+            arr[5]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "quadratic", sizeof "quadratic");
+            arr[6]=glGetUniformLocation(l->shader_program, str);
 
-    glUniform1f(constant, light.constant);
-    glUniform1f(linear, light.linear);
-    glUniform1f(quadratic, light.quadratic);
+            glUniform3fv(arr[0], 1, l->position);
+            glUniform3fv(arr[1], 1, l->ambient);
+            glUniform3fv(arr[2], 1, l->diffuse);
+            glUniform3fv(arr[3], 1, l->specular);
+
+            glUniform1f(arr[4], l->constant);
+            glUniform1f(arr[5], l->linear);
+            glUniform1f(arr[6], l->quadratic);
+            memcpy(l->arr, arr, sizeof(arr));
+            break;
+        }
+        case SPOT:
+        {
+            Spot_light *l = p;
+            glUseProgram(l->shader_program);
+            unsigned int arr[10];
+            memcpy(&str[len+1], "position", sizeof "position");
+            arr[0]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "direction", sizeof "direction");
+            arr[1] = glGetUniformLocation(l->shader_program, str);
+
+            memcpy(&str[len+1], "ambient", sizeof "ambient");
+            arr[2] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "diffuse", sizeof "diffuse");
+            arr[3] = glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "specular", sizeof "specular");
+            arr[4]=glGetUniformLocation(l->shader_program, str);
+
+            memcpy(&str[len+1], "constant", sizeof "constant");
+            arr[5]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "linear", sizeof "linear");
+            arr[6]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "quadratic", sizeof "quadratic");
+            arr[7]=glGetUniformLocation(l->shader_program, str);
+
+            memcpy(&str[len+1], "cutoff", sizeof "cutoff");
+            arr[8]=glGetUniformLocation(l->shader_program, str);
+            memcpy(&str[len+1], "outer_cutoff", sizeof "outer_cutoff");
+            arr[9]=glGetUniformLocation(l->shader_program, str);
+
+            glUniform3fv(arr[0], 1, l->position);
+            glUniform3fv(arr[1], 1, l->direction);
+            glUniform3fv(arr[2], 1, l->ambient);
+            glUniform3fv(arr[3], 1, l->diffuse);
+            glUniform3fv(arr[4], 1, l->specular);
+
+            glUniform1f(arr[5], l->constant);
+            glUniform1f(arr[6], l->linear);
+            glUniform1f(arr[7], l->quadratic);
+
+            glUniform1f(arr[8], l->cutoff);
+            glUniform1f(arr[9], l->outer_cutoff);
+            memcpy(l->arr, arr, sizeof(arr));
+            break;
+        }
+        
+        default:
+            break;
+    }
 }
