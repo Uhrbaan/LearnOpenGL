@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
     cam = initCamera((vec3){0.0f, 0.0f, 3.0f}, (vec3){0.0f, 0.0f, -1.0f}, 
                      (vec3){0.0f, 1.0f, 0.0f}, SCR_W, SCR_H, 1.0f);
 
-    // shaders
+// shaders
     unsigned int light_src, light_illuminated;
     if (!(light_src = createShaderProgram("res/glsl/cube.vs", 
                                           "res/glsl/cube.fs")))
@@ -47,6 +47,7 @@ int main(int argc, char const *argv[])
                                                    "res/glsl/light.fs")))
         return 1;
 
+
     // projection init
     unsigned int programs[] = {light_src, light_illuminated};
     cam.view = createUniformMatrix("view", 2, programs);
@@ -54,46 +55,63 @@ int main(int argc, char const *argv[])
     glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
     updateUniformMatrix(cam.projection, 0);
     
-    // material
+    unsigned int diffuse_map, specular_map, emission_map;
+    diffuse_map = 
+        file2texture("res/textures/container2.png", GL_RGBA, GL_TEXTURE_2D);
+    specular_map = 
+        file2texture("res/textures/container2_specular.png", GL_RGBA, GL_TEXTURE_2D);
+    emission_map = 
+        file2texture("res/textures/matrix.jpg", GL_RGB, GL_TEXTURE_2D);
+// material
     Material material = {
-        {0.5f, 0.2f, 0.2f},// ambiant
-        {1.0f, 0.3f, 0.3f},// diffuse
-        {1.0f, 0.5f, 0.5f},// specular
-        64.0f,              // shininess
+        diffuse_map,        // diffuse
+        specular_map,       // specular
+        emission_map,       // emission
+        32.0f,              // shininess
         light_illuminated   // shader_program
     };
     updateMaterial(material);
     Light light = {
-        {0.2f, 0.5f, 1.2f}, // pos
+        {0.3f, 0.5f, 1.4f}, // pos
         {0.5f, 0.5f, 0.5f}, // ambiant
-        {1.0f, 1.0f, 1.0f}, // diffuse
+        {0.8f, 0.8f, 0.8f}, // diffuse
         {1.0f, 1.0f, 1.0f}, // specular
         light_illuminated   // shader_program
     };
     updateLight(light);
 
-    // models
+// models
     float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
     unsigned int vbo;
     vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    model light_cube = createModel((vec3){light.position[0], light.position[1], light.position[2]},
-                                   (vec3){0.2f, 0.2f, 0.2f}, 
-                                   createUniformMatrix("model", 1, 
-                                                       &light_src),
-                                   genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
-                                           6*sizeof(float), (void*)0),
-                                   0),
-          cube  = createModel((vec3){0.0f, 0.0f, 0.0f}, 
-                              (vec3){1.0f, 1.0f, 1.0f}, 
-                              createUniformMatrix("model", 1, 
-                                                  &light_illuminated),
-                              genVAO(vbo, 0, 0, 3, GL_FLOAT, false, 
-                                     6*sizeof(float), (void*)0),
-                              0);
-    // set normals to cube sides
-    glBindVertexArray(cube.vao);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, 6*sizeof(float), (void*)(3*sizeof(float)));
-    glEnableVertexArrayAttrib(cube.vao, 1);
+    
+    model light_cube, cube, box;
+    light_cube = createModel(
+        (vec3){light.position[0], light.position[1], light.position[2]},
+        (vec3){0.2f, 0.2f, 0.2f}, 
+        createUniformMatrix("model", 1, &light_src),
+        genVAO(vbo, 0, 1, 
+               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0)
+        );
+
+    cube = createModel(
+        (vec3){0.0f, 0.0f, 0.0f}, 
+        (vec3){1.0f, 1.0f, 1.0f}, 
+        createUniformMatrix("model", 1,&light_illuminated),
+        genVAO(vbo, 0, 3,
+               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0,
+               1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)),
+               2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)))
+        );
+
+    box = createModel(
+        (vec3){0.0f, 0.0f, 4.0f},
+        (vec3){1.2f, 1.2f, 1.2f},
+        createUniformMatrix("model", 1, &light_illuminated),
+        genVAO(vbo, 0, 1,
+               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0,
+               1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)))
+        );
 
     // send camera pos
     unsigned int cam_pos_loc;
@@ -112,23 +130,28 @@ int main(int argc, char const *argv[])
 
         // input
         processInput(window);
+        glUniform3fv(cam_pos_loc, 1, cam.pos);
 
         // rendering
         // clear screen
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        
-        // making light circle around cube
-        glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, sin(current_frame)*4}, light_cube.pos);
-        glm_mat4_identity(light_cube.transform.m);
-        glm_translate(light_cube.transform.m, light_cube.pos);
-        // update light source position
-        memcpy(light.position, light_cube.pos, sizeof(vec3));
-        updateLight(light);
-        glUniform3fv(cam_pos_loc, 1, cam.pos);
-
+        // // making light circle around cube
+        // glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, sin(current_frame)*4}, light_cube.pos);
+        // glm_mat4_identity(light_cube.transform.m);
+        // glm_translate(light_cube.transform.m, light_cube.pos);
+        // // update light source position
+        // memcpy(light.position, light_cube.pos, sizeof(vec3));
+        // updateLight(light);
         renderModel(light_cube, light_src, 0, 36); // light represented by white cube
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, material.diffuse_map);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, material.specular_map);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, material.emission_map);
         renderModel(cube, light_illuminated, 0, 36);
 
         // process
@@ -136,7 +159,6 @@ int main(int argc, char const *argv[])
         updateUniformMatrix(cam.view, 0);
 
         // render
-
         glfwSwapBuffers(window);
         glfwPollEvents();
         msleep(16);

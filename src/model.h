@@ -9,7 +9,7 @@ typedef struct model
     vec3 pos, scale, rot_axis;
     float rot_angle;
     mat4wloc transform;
-    unsigned int vao, texture;
+    unsigned int vao;
     // render info 
     int offset; unsigned int vertices;
 } model;
@@ -17,17 +17,16 @@ typedef struct model
 unsigned int genBuffer(GLenum buffer_type, size_t data_size, void* data, 
                        GLenum usage);
 
-unsigned int genVAO(unsigned int vbo, 
-                    unsigned int ebo, 
+unsigned int genVAO(unsigned int vbo, unsigned int ebo, int n, 
                     unsigned int shader_loc_index, 
                     unsigned int size, 
                     GLenum data_type, 
                     bool normalize, 
                     size_t stride, 
-                    void* offset);
+                    void* offset,
+                    ...);
 
-model createModel(vec3 pos, vec3 scale, mat4wloc transform, 
-                  unsigned int vao, unsigned int texture);
+model createModel(vec3 pos, vec3 scale, mat4wloc transform, unsigned int vao);
 
 void renderModel(model model, unsigned int shader_program, int offset, 
                  unsigned int nvertices);

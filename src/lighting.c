@@ -1,30 +1,27 @@
 #include "lighting.h"
-#include <glad/gl.h>
+#include "gl.h"
 
 void updateMaterial(Material material)
 {
-    unsigned int ambiant, diffuse, specular, shininess;
-    ambiant = glGetUniformLocation(material.shader_program, "material.ambiant");
-    diffuse = glGetUniformLocation(material.shader_program, "material.diffuse");
-    specular=glGetUniformLocation(material.shader_program, "material.specular");
-    shininess=glGetUniformLocation(material.shader_program,"material.shininess");
-
-    glUniform3fv(ambiant, 1, material.ambiant);
-    glUniform3fv(diffuse, 1, material.diffuse);
-    glUniform3fv(specular, 1, material.specular);
-    glUniform1f(shininess, material.shininess);
+    glUseProgram(material.shader_program);
+    setUniform(material.shader_program, GL_FLOAT, "material.shininess", 
+               material.shininess);
+    setUniform(material.shader_program, GL_INT, "material.diffuse", 0);
+    setUniform(material.shader_program, GL_INT, "material.specular", 1);
+    setUniform(material.shader_program, GL_INT, "material.emission", 2);
 }
 
 void updateLight(Light light)
 {
-    unsigned int pos, ambiant, diffuse, specular;
+    glUseProgram(light.shader_program);
+    unsigned int pos, ambient, diffuse, specular;
     pos=glGetUniformLocation(light.shader_program,"light.position");
-    ambiant = glGetUniformLocation(light.shader_program, "light.ambiant");
+    ambient = glGetUniformLocation(light.shader_program, "light.ambient");
     diffuse = glGetUniformLocation(light.shader_program, "light.diffuse");
     specular=glGetUniformLocation(light.shader_program, "light.specular");
 
     glUniform3fv(pos, 1, light.position);
-    glUniform3fv(ambiant, 1, light.ambiant);
+    glUniform3fv(ambient, 1, light.ambient);
     glUniform3fv(diffuse, 1, light.diffuse);
     glUniform3fv(specular, 1, light.specular);
 }

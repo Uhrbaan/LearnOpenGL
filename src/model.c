@@ -10,34 +10,53 @@ unsigned int genBuffer(GLenum buffer_type, size_t data_size, void* data, GLenum 
     return buff;
 };
 
-unsigned int genVAO(unsigned int vbo, 
-                    unsigned int ebo, 
+unsigned int genVAO(unsigned int vbo, unsigned int ebo, int n, 
                     unsigned int shader_loc_index, 
                     unsigned int size, 
                     GLenum data_type, 
                     bool normalize, 
                     size_t stride, 
-                    void* offset)
+                    void* offset,
+                    ...)
 {
     unsigned int vao;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glVertexAttribPointer(shader_loc_index, size, data_type, normalize, stride, offset);
+    glVertexAttribPointer(shader_loc_index, size, data_type, 
+                          normalize, stride, offset);
     glEnableVertexAttribArray(shader_loc_index);
+    
+    // valists
+    if (n>1)
+    {
+        va_list va;
+        va_start(va, offset);
+        for (int i=1; i<n; i++)
+        {
+            shader_loc_index = va_arg(va, unsigned int);
+            size =             va_arg(va, unsigned int);
+            data_type =        va_arg(va, unsigned int);
+            normalize =        va_arg(va, int);
+            stride =           va_arg(va, size_t);
+            offset =           va_arg(va, void*);
+            glVertexAttribPointer(shader_loc_index, size, data_type, 
+                                  normalize, stride, offset);
+            glEnableVertexAttribArray(shader_loc_index);
+        }
+    }
+
     return vao;
 }
 
-model createModel(vec3 pos, vec3 scale, mat4wloc transform, 
-                  unsigned int vao, unsigned int texture)
+model createModel(vec3 pos, vec3 scale, mat4wloc transform, unsigned int vao)
 {
     model model = {0};
     memcpy(model.pos, pos, sizeof(vec3));
     memcpy(model.scale, scale, sizeof(vec3));
     model.transform = transform;
     model.vao = vao;
-    model.texture = texture;
     glm_mat4_identity(model.transform.m);
     glm_translate(model.transform.m, model.pos);
     glm_scale(model.transform.m, model.scale);
