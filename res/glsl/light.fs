@@ -86,7 +86,7 @@ vec3 spotLight(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_dir)
     float d, attenuation;
     d           = length(light.position-frag_pos);
     attenuation = 1.0/(light.constant + light.linear*d + light.quadratic*(d*d));
-    // spotlight (soft edges) | to make spotlight smooth -> I=(𝜃-𝛾)/𝜀
+    // spotlight (soft edges) | to make spotlight smooth -> I=(𝜃-𝛾)/𝜀vv
     float theta, epsilon, intensity;
     theta     = dot(light_dir, normalize(-light.direction));
     epsilon   = light.cutoff - light.outer_cutoff;
