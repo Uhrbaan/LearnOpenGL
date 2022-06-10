@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
         {
             {0.7f, 0.2f, 2.0f},
             {0.2f, 0.2f, 0.2f},
-            {0.5f, 0.5f, 0.5f},
+            {1.0f, 0.0f, 0.0f},
             {0.9f, 0.9f, 0.9f},
             1.0f, 0.35f, 0.44f, 
             light_illuminated
@@ -91,7 +91,7 @@ int main(int argc, char const *argv[])
         {
             {2.3f, -3.3f, -4.0f},
             {0.2f, 0.2f, 0.2f},
-            {0.7f, 0.9f, 0.8f},
+            {0.0f, 1.0f, 0.8f},
             {0.8f, 1.0f, 0.9f},
             1.0f, 0.09f, 0.032f,
             light_illuminated
@@ -99,7 +99,7 @@ int main(int argc, char const *argv[])
         {
             {-4.0f, 2.0f, -12.0f},
             {0.5f, 0.5f, 0.3f},
-            {1.0f, 1.0f, 0.9f},
+            {0.0f, 0.0f, 1.0f},
             {1.0f, 1.0f, 1.0f},
             1.0f, 0.07f, 0.017f,
             light_illuminated
@@ -107,7 +107,7 @@ int main(int argc, char const *argv[])
         {
             {0.0f, 0.0f, -3.0f},
             {0.3f, 0.1f, 0.1f},
-            {0.7f, 0.4f, 0.4f},
+            {0.0f, 1.0f, 0.0f},
             {1.0f, 0.7f, 0.7f},
             1.0f, 0.22f, 0.20f,
             light_illuminated
@@ -156,9 +156,10 @@ int main(int argc, char const *argv[])
                2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)))
         );
 
-    // send camera pos
-    unsigned int cam_pos_loc;
+    // uniform locations
+    unsigned int cam_pos_loc, light_cube_col;
     cam_pos_loc = glGetUniformLocation(light_illuminated, "cam_pos");
+    light_cube_col = glGetUniformLocation(light_src, "light_color");
 
     // allows z-buffer testing-> discard behind
     glEnable(GL_DEPTH_TEST);
@@ -199,6 +200,8 @@ int main(int argc, char const *argv[])
             glm_mat4_identity(light_cube.transform.m);
             glm_translate(light_cube.transform.m, pt_lights[i].position);
             glm_scale(light_cube.transform.m, light_cube.scale);
+            glUseProgram(light_src);
+            glUniform3fv(light_cube_col, 1, pt_lights[i].diffuse);
             renderModel(light_cube, light_src, 0, 36);
         }
 
