@@ -1,34 +1,37 @@
 #ifndef model_h
 #define model_h
 
-#include <cglm/cglm.h>
-#include "gl.h"
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "mesh.h"
 
-typedef struct model 
+typedef struct aiNode aiNode;
+typedef struct aiScene aiScene;
+typedef struct aiMesh aiMesh;
+typedef struct aiMaterial aiMaterial;
+typedef struct aiString aiString;
+typedef enum aiTextureType aiTextureType;
+
+typedef struct
 {
-    vec3 pos, scale, rot_axis;
-    float rot_angle;
-    mat4wloc transform;
-    unsigned int vao;
-    // render info 
-    int offset; unsigned int vertices;
-} model;
+    Mesh *meshes; int nm; // malloced to scene->RootNode->mNumChildren
+    char *directory; // malloced
+} Model;
 
-unsigned int genBuffer(GLenum buffer_type, size_t data_size, void* data, 
-                       GLenum usage);
+struct loaded_textures
+{
+    size_t n;   // number of elements
+    size_t n_tot; // total size of the dynamic array
+    struct texture *textures; // data
+};
 
-unsigned int genVAO(unsigned int vbo, unsigned int ebo, int n, 
-                    unsigned int shader_loc_index, 
-                    unsigned int size, 
-                    GLenum data_type, 
-                    bool normalize, 
-                    size_t stride, 
-                    void* offset,
-                    ...);
+void loadModel(Model *model, const char *path);
+void drawModel(Model *model, unsigned int shader_program);
 
-model createModel(vec3 pos, vec3 scale, mat4wloc transform, unsigned int vao);
-
-void renderModel(model model, unsigned int shader_program, int offset, 
-                 unsigned int nvertices);
+void processNode(Model *model, aiNode *node, const aiScene *scene);
+Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+struct texture *loadMaterialTextures(aiMaterial *mat, aiTextureType type,
+                                     char *typeName);
 
 #endif

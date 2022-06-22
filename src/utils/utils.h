@@ -170,10 +170,8 @@
                                    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,\
                                    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f}
         
-
 // sleeps for msec miliseconds
 int msleep(long msec);
-
 const char *file2str(const char *file_path);
 
 #endif 

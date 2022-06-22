@@ -2,8 +2,10 @@ PROGRAM=bin/main
 CC=clang
 
 CFLAGS= -g -Wall
-LDFLAGS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
-LDLIBS =
+# all -L libraries flags
+LDFLAGS = 
+# all -l libraries
+LDLIBS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm -lassimp
 
 C_FILES := $(wildcard src/*.c src/**/*.c)
 OBJS    := $(patsubst src/%.c, obj/%.o, $(C_FILES))

@@ -7,8 +7,9 @@ in vec2 texture_coo;
 
 struct Material
 {
-    sampler2D diffuse;
-    sampler2D specular;
+    sampler2D diffuse, specular; // temporary to remove errors
+    sampler2D texture_diffuse_1, texture_diffuse_2, texture_diffuse_3;
+    sampler2D texture_specular_1, texture_specular_2;
     sampler2D emission;
     float shininess;
 }; 

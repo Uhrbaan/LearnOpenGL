@@ -1,11 +1,6 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
- * lighting
- *  - ambiant
- *  - diffuse -> simulates where light comes from
- *  - specular -> simulates bright spots on objects
- *  -> combined (Phong)
- *  - directional light(16.1)
- * 
+ * Loading models into game
+ * -> Assimp loading library
  * 
  * 
  */
@@ -72,46 +67,39 @@ int main(int argc, char const *argv[])
         light_illuminated   // shader_program
     };
     updateMaterial(material);
-    Directional_light dir_light = {
+    Directional_light dir_light = 
+    {
         {-0.2f, -1.0f, -0.3f},
         { 0.2f,  0.2f,  0.2f},
         { 0.8f,  0.8f,  0.8f},
         { 1.0f,  1.0f,  1.0f},
         light_illuminated    
     };
-    Point_light pt_lights[4] = {
-        {
-            {0.7f, 0.2f, 2.0f},
-            {0.2f, 0.2f, 0.2f},
-            {1.0f, 0.0f, 0.0f},
-            {0.9f, 0.9f, 0.9f},
-            1.0f, 0.35f, 0.44f, 
-            light_illuminated
-        },
-        {
-            {2.3f, -3.3f, -4.0f},
-            {0.2f, 0.2f, 0.2f},
-            {0.0f, 1.0f, 0.8f},
-            {0.8f, 1.0f, 0.9f},
-            1.0f, 0.09f, 0.032f,
-            light_illuminated
-        },
-        {
-            {-4.0f, 2.0f, -12.0f},
-            {0.5f, 0.5f, 0.3f},
-            {0.0f, 0.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f},
-            1.0f, 0.07f, 0.017f,
-            light_illuminated
-        },
-        {
-            {0.0f, 0.0f, -3.0f},
-            {0.3f, 0.1f, 0.1f},
-            {0.0f, 1.0f, 0.0f},
-            {1.0f, 0.7f, 0.7f},
-            1.0f, 0.22f, 0.20f,
-            light_illuminated
-        }
+    Point_light pt_lights[4] = 
+    {{  {0.7f, 0.2f, 2.0f},
+        {0.2f, 0.2f, 0.2f},
+        {1.0f, 0.0f, 0.0f},
+        {0.9f, 0.9f, 0.9f},
+        1.0f, 0.35f, 0.44f, 
+        light_illuminated   },
+     {  {2.3f, -3.3f, -4.0f},
+        {0.2f, 0.2f, 0.2f},
+        {0.0f, 1.0f, 0.8f},
+        {0.8f, 1.0f, 0.9f},
+        1.0f, 0.09f, 0.032f,
+        light_illuminated   },
+     {  {-4.0f, 2.0f, -12.0f},
+        {0.5f, 0.5f, 0.3f},
+        {0.0f, 0.0f, 1.0f},
+        {1.0f, 1.0f, 1.0f},
+        1.0f, 0.07f, 0.017f,
+        light_illuminated   },
+     {  {0.0f, 0.0f, -3.0f},
+        {0.3f, 0.1f, 0.1f},
+        {0.0f, 1.0f, 0.0f},
+        {1.0f, 0.7f, 0.7f},
+        1.0f, 0.22f, 0.20f,
+        light_illuminated   }
     };
     Spot_light spotlight = {
         {cam.pos[0], cam.pos[1], cam.pos[2]},
@@ -131,30 +119,9 @@ int main(int argc, char const *argv[])
     updateLight(&pt_lights[3], "pt_lights[3]", POINT);
     updateLight(&spotlight, "spotlight", SPOT);
 
-// models
-    float vertices[] = MODEL_CUBE_NORMAL_TEXTURE;
-    vec3 cube_pos[] = MODEL_10_CUBES_POS;
-    unsigned int vbo;
-    vbo = genBuffer(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-    model light_cube, cube;
-    light_cube = createModel(
-        (vec3){0.0f, 0.0f, 0.0f},
-        (vec3){0.1f, 0.1f, 0.1f}, 
-        createUniformMatrix("model", 1, &light_src),
-        genVAO(vbo, 0, 1, 
-               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0)
-        );
-
-    cube = createModel(
-        (vec3){0.0f, 0.0f, 0.0f}, 
-        (vec3){1.0f, 1.0f, 1.0f}, 
-        createUniformMatrix("model", 1,&light_illuminated),
-        genVAO(vbo, 0, 3,
-               0, 3, GL_FLOAT, false, 8*sizeof(float), (void*)0,
-               1, 3, GL_FLOAT, false, 8*sizeof(float), (void*)(3*sizeof(float)),
-               2, 2, GL_FLOAT, false, 8*sizeof(float), (void*)(6*sizeof(float)))
-        );
+// models -> loaded w/ assimp
+    Model model = {0};
+    loadModel(&model, "/home/uhrbaan/Documents/Code/C/openGL/com.learnopengl/res/models/backpack/backpack.obj");
 
     // uniform locations
     unsigned int cam_pos_loc, light_cube_col;
@@ -181,47 +148,7 @@ int main(int argc, char const *argv[])
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // // making light circle around cube
-        // glm_vec3_copy((vec3){sin(current_frame)*4, cos(current_frame)*4, sin(current_frame)*4}, light_cube.pos);
-        // glm_mat4_identity(light_cube.transform.m);
-        // glm_translate(light_cube.transform.m, light_cube.pos);
-        // // update light source position
-        // memcpy(light.position, light_cube.pos, sizeof(vec3));
-        // updateLight(light);
-        // renderModel(light_cube, light_src, 0, 36); // light represented by white cube
-        
-        // move flashlight
-        glUseProgram(spotlight.shader_program);
-        glUniform3fv(spotlight.arr[0], 1, cam.pos);
-        glUniform3fv(spotlight.arr[1], 1, cam.z);
-
-        for (int i=0; i<4; i++)
-        {
-            glm_mat4_identity(light_cube.transform.m);
-            glm_translate(light_cube.transform.m, pt_lights[i].position);
-            glm_scale(light_cube.transform.m, light_cube.scale);
-            glUseProgram(light_src);
-            glUniform3fv(light_cube_col, 1, pt_lights[i].diffuse);
-            renderModel(light_cube, light_src, 0, 36);
-        }
-
-        // render multiple objects
-        for(int i=0; i<10; i++)
-        {
-            glm_mat4_identity(cube.transform.m);
-            glm_translate(cube.transform.m, cube_pos[i]);
-            float angle = 20.0f * i;
-            glm_rotate(cube.transform.m, glm_rad(angle), (vec3){1.0f, 0.3f, 0.5f});
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, material.diffuse_map);
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, material.specular_map);
-            glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, material.emission_map);
-            renderModel(cube, light_illuminated, 0, 36);
-        }
-
+        drawModel(&model, light_illuminated);
 
         // process
         updateCamera();
