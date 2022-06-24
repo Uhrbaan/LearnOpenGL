@@ -13,9 +13,9 @@ struct texture
 typedef struct mesh
 {
     // mesh data
-    struct vertex *vertices;  int vn;
-    unsigned int *indices;    int in;
-    struct texture *textures; int tn;
+    struct vertex *vertices;  int n_vert;
+    unsigned int *indices;    int n_ind;
+    struct texture *textures; int n_tex; // diffuse..specular
     // rendering data
     unsigned int vao, vbo, ebo;    
 } Mesh;
@@ -23,6 +23,7 @@ typedef struct mesh
 Mesh createMesh(struct vertex *vertices, int vn, 
                 unsigned int *indices, int in,
                 struct texture *textures, int tn);
+void initMesh(Mesh *mesh);
 void drawMesh(Mesh *mesh, unsigned int shader_program);
 
 #endif

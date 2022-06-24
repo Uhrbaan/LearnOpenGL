@@ -174,4 +174,7 @@
 int msleep(long msec);
 const char *file2str(const char *file_path);
 
+#include <stdlib.h>
+size_t da_push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz);
+
 #endif 

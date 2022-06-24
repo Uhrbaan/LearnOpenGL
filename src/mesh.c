@@ -7,9 +7,9 @@ Mesh createMesh(struct vertex *vertices, int vn,
                 struct texture *textures, int tn)
 {
     Mesh mesh = {0};
-    mesh.vertices = vertices; mesh.vn = vn;
-    mesh.indices = indices;   mesh.in = in;
-    mesh.textures = textures; mesh.tn = tn;
+    mesh.vertices = vertices; mesh.n_vert = vn;
+    mesh.indices = indices;   mesh.n_ind = in;
+    mesh.textures = textures; mesh.n_tex = tn;
     initMesh(&mesh);
     return mesh;    
 }
@@ -24,12 +24,12 @@ void initMesh(Mesh *mesh)
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh->vn * sizeof (struct vertex),
+    glBufferData(GL_ARRAY_BUFFER, mesh->n_vert * sizeof (struct vertex),
                  mesh->vertices, GL_STATIC_DRAW);
 
     glBindVertexArray(ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->in * sizeof (unsigned int),
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->n_ind * sizeof (unsigned int),
                  mesh->indices, GL_STATIC_DRAW);
     
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct vertex), 
@@ -56,7 +56,7 @@ void drawMesh(Mesh *mesh, unsigned int shader_program)
 {
     int diffuse_n = 1, specular_n = 1, n=0, s_loc=0;
     char name[100];
-    for (int i=0; i<mesh->tn; i++)
+    for (int i=0; i<mesh->n_tex; i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         if (!strcmp(mesh->textures[i].type, "diffuse"))
@@ -73,6 +73,6 @@ void drawMesh(Mesh *mesh, unsigned int shader_program)
 
     // draw mesh
     glBindVertexArray(mesh->vao);
-    glDrawElements(GL_TRIANGLES, mesh->tn, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, mesh->n_tex, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }

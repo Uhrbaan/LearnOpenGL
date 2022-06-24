@@ -42,3 +42,27 @@ const char *file2str(const char *file_path)
     }
     return NULL;
 }
+
+// implementation of simple dynamic array
+size_t da_push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz)
+{
+    size_t new_sz = tot_sz;
+    if (sz+v_sz > tot_sz)
+    {
+        if (!tot_sz)
+            new_sz = v_sz;
+        else
+            new_sz = tot_sz*2;
+
+        void *p = NULL;
+        p = realloc(*ptr, new_sz);
+        if (!p)
+        {
+            printf("error: dynamic array failed allocating memory\n");
+            return 0;
+        }
+        *ptr = p;
+    }
+    memcpy(*ptr+sz, v, v_sz);
+    return new_sz;
+}

@@ -3,71 +3,69 @@
 #include "gl.h"
 #include <string.h>
 
-static struct loaded_textures loaded_textures = {0};
-struct texture *loadMaterialTextures(aiMaterial *mat, aiTextureType type,
-                                     char *type_str)
+struct loaded_textures
+{
+    size_t n;   // number of elements
+    size_t tot_sz; // total size of the dynamic array
+    struct texture *textures; // data
+}; static struct loaded_textures loaded_textures = {0};
+
+// charge une texture dans l'array globale des textures
+int loadMaterialTextures(struct texture **p, 
+                                     aiMaterial *mat, aiTextureType type,
+                                     char *type_str, const char *directory)
 {
     int n = aiGetMaterialTextureCount(mat, type);
     struct texture *t = calloc(n, sizeof(struct texture));
+    char path[2096];
     for (int i=0; i<n; i++)
     {
         aiString str;
         aiGetMaterialTexture(mat, type, i, &str, 
                              NULL, NULL, NULL, NULL, NULL, NULL);
+        // TODO optimize
+        strcpy(path, directory);
+        strcat(path, "/");
+        strcat(path, str.data);
         // load texture if not already loaded
         bool skip = false;
         for (int j=0; j<loaded_textures.n; j++)
         {
-            if (strcmp(loaded_textures.textures[j].path, str.data) == 0)
+            if (strcmp(loaded_textures.textures[j].path, path) == 0)
             {
                 t[i].id = loaded_textures.textures[j].id;
                 t[i].type = type_str;
-                t[i].path = str.data;
+                t[i].path = path;
                 skip = true;
                 break;
             }
-            if (!skip)
-            {
-                t[i].path = str.data;
-                t[i].type = type;
-                t[i].id = file2texture(t[i].path, GL_RGB, GL_TEXTURE_2D);
-                // dynamic array
-                if (loaded_textures.n+1 > loaded_textures.n_tot) // -> realloc
-                {
-                    size_t new_size;
-                    if (!loaded_textures.n_tot)
-                        new_size = 1;
-                    else
-                        new_size = loaded_textures.n_tot*2;
-
-                    struct texture *p = NULL;
-                    p = realloc(loaded_textures.textures, 
-                                sizeof(struct texture) * new_size);
-                    if (!p)
-                    {
-                        fprintf(ERROR_MSG_LOG("failed to extend array", 
-                                "new_size=%zu\n"), new_size);
-                        exit(EXIT_FAILURE);
-                    }
-                    loaded_textures.n_tot = new_size;
-                    loaded_textures.textures = p;
-                }
-                loaded_textures.textures[loaded_textures.n] = t[i];
-                loaded_textures.n++;
-            }
+        }
+        if (!skip)
+        {
+            t[i].path = path;
+            t[i].type = type_str;
+            t[i].id = file2texture(t[i].path, GL_RGB, GL_TEXTURE_2D);
+            loaded_textures.tot_sz = 
+                da_push((void**)&loaded_textures.textures, 
+                        loaded_textures.n++ * sizeof(struct texture), 
+                        loaded_textures.tot_sz, 
+                        &t[i],
+                        sizeof(struct texture));
         }
     }
-    return t;
+    *p = t;
+    return n;
 }
 
-Mesh processMesh(aiMesh *mesh, const aiScene *scene)
+// crée un objet Mesh 
+Mesh processMesh(aiMesh *mesh, const aiScene *scene, const char *directory)
 {
     Mesh m = {0};
+    m.n_vert = mesh->mNumVertices;
+    m.vertices = malloc(sizeof(struct vertex) * m.n_vert);
 
-    m.vn = mesh->mNumVertices;
-    m.vertices = malloc(sizeof(struct vertex) * m.vn);
     // process vertex pos & normals & texture_coo
-    for (int i=0; i<m.vn; i++)
+    for (int i=0; i<m.n_vert; i++)
     {
         memcpy(m.vertices[i].position, (float*)&mesh->mVertices[i], 
                sizeof(vec3));
@@ -77,13 +75,12 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene)
             memcpy(m.vertices[i].texure_coo, (float*)&mesh->mTextureCoords[i], 
                    sizeof(vec2));
         // else its already set at 0|0
-
     }
     
     // process indices
     for (int i=0; i<mesh->mNumFaces; i++)
-        m.in += mesh->mFaces[i].mNumIndices;
-    m.indices = malloc(sizeof(unsigned int) * m.in);
+        m.n_ind += mesh->mFaces[i].mNumIndices;
+    m.indices = malloc(sizeof(unsigned int) * m.n_ind);
     void *p = &m.indices[0];
     for (int i=0; i<mesh->mNumFaces; i++)
     {
@@ -95,35 +92,39 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene)
     // material
     if (mesh->mMaterialIndex >= 0)
     {
-        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        aiMaterial  *material = scene->mMaterials[mesh->mMaterialIndex];
+        int d, s;
         struct texture *diffuse, *specular;
-        diffuse = loadMaterialTextures(material, aiTextureType_DIFFUSE,
-                                       "diffuse");
-        specular = loadMaterialTextures(material, aiTextureType_SPECULAR,
-                                        "specular");
-        // add the textures to the mesh
-        // add first diffuse then specular in order in the textures array
-        // haha good fun in c
+        d = loadMaterialTextures(&diffuse, material, aiTextureType_DIFFUSE,
+                                       "diffuse", directory);
+        s = loadMaterialTextures(&specular, material, aiTextureType_SPECULAR,
+                                        "specular", directory);
+
+        m.n_tex = d+s;
+        m.textures = malloc(sizeof(struct texture)*m.n_tex);
+        void *p = &m.textures[0];
+        for (int i=0; i<d; i++)
+        {
+            memcpy(p, &diffuse[i], sizeof(struct texture));
+            p+=sizeof(struct texture);
+        }
+        for (int i=0; i<s; i++)
+        {
+            memcpy(p, &specular[i], sizeof(struct texture));
+            p+=sizeof(struct texture);
+        }
     }
+
+    // generate vao, vbo, ebo from mesh data
+    initMesh(&m);
 
     return m;
 }
 
-void processNode(Model *model, aiNode *node, const aiScene *scene)
-{
-    int i;
-    // process all nodes mesh, add them to meshes
-    for (i=0; i<node->mNumChildren; i++)
-    {
-        aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        model->meshes[i] = processMesh(mesh, scene);
-    }
-    // process all the children
-    for (i=0; i<node->mNumChildren; i++)
-        processMesh(node->mChildren[i], scene);
-}
-
-void loadModel(Model *model, const char *path)
+#include <libgen.h> // to get the basename / directory of path
+int loadModel(Model *model, const char *path)
+// checkout https://gist.github.com/tilkinsc/661d9da4a4121101a182b8880857f6fb
+// pure C loading w/ assimp
 {
     /* creates the scene (root of the data struct) from a file
      * other useful flags:
@@ -131,38 +132,36 @@ void loadModel(Model *model, const char *path)
      *  - aiProcess_SplitLargeMeshes
      *  - aiProcess_OptimizeMeshes
      * -> documentation  assimp.sourceforge.net/lib_html/postprocess_8h.html  */
-    const aiScene *scene = aiImportFile(path, aiProcess_Triangulate | 
-                                              aiProcess_FlipUVs);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || 
-        !scene->mRootNode)
+    unsigned int flags = aiProcess_Triangulate | aiProcess_FlipUVs;
+    const aiScene *scene = aiImportFile(path, flags);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || scene->mNumMeshes <= 0)
     {
-        fprintf(stderr, ERROR_MSG_LOG("failed loading the scene struct", 
-                                      aiGetErrorString()));
-        return;
+        aiReleaseImport(scene);
+        fprintf(stderr, ERROR_MSG_LOG("assimp could not load file", 
+                                       aiGetErrorString()));
+        return 1;
     }
-    else
+    char directory[1048];
+    strcpy(directory, path);
+    dirname(directory);
+
+    model->directory = malloc(sizeof(char)*strlen(directory));
+    strcpy(model->directory, directory);
+
+    model->n_mesh = scene->mNumMeshes;
+    model->meshes = malloc(sizeof(Mesh)*model->n_mesh);
+
+    // reading the meshes
+    for (int i=0; i<model->n_mesh; i++)
     {
-        // aiScene Root is not loading corectly
-        ptrdiff_t last_slash = (strrchr(path, '/')-path);
-        model->directory = calloc(last_slash+1, sizeof(char));
-        memcpy(model->directory, path, sizeof(char) * last_slash);
-        model->meshes = malloc(scene->mRootNode->mNumChildren * sizeof(void*));
-        model->nm     = scene->mRootNode->mNumChildren;
-
-        processNode(model, scene->mRootNode, scene);
-
-        return;
+        aiMesh *mesh = scene->mMeshes[i];
+        model->meshes[i] = processMesh(mesh, scene, directory);
     }
+    return 1;
 }
 
 void drawModel(Model *model, unsigned int shader_program)
 {
-    for (int i=0; i<model->nm; i++)
-        drawMesh(&(model->meshes[i]), shader_program);
-}
-
-void destroyModel(Model *model)
-{
-    // freenig all memory and set ponters to NULL
+    for (int i=0; i<model->n_mesh; i++)
+        drawMesh(&model->meshes[i], shader_program);
 }

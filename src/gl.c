@@ -177,6 +177,7 @@ unsigned int setUniform(unsigned int shader_program, int type,
     return uni_location;
 }
 
+// TODO gert rid of color format -> use n_channels
 unsigned int file2texture(const char *img_path, GLenum color_format, 
                           GLenum texture_type)
 {

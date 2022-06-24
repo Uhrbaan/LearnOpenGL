@@ -15,23 +15,14 @@ typedef enum aiTextureType aiTextureType;
 
 typedef struct
 {
-    Mesh *meshes; int nm; // malloced to scene->RootNode->mNumChildren
+    Mesh *meshes; int n_mesh; // malloced to scene->RootNode->mNumChildren
     char *directory; // malloced
 } Model;
 
-struct loaded_textures
-{
-    size_t n;   // number of elements
-    size_t n_tot; // total size of the dynamic array
-    struct texture *textures; // data
-};
-
-void loadModel(Model *model, const char *path);
+int loadModel(Model *model, const char *path);
 void drawModel(Model *model, unsigned int shader_program);
 
-void processNode(Model *model, aiNode *node, const aiScene *scene);
-Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-struct texture *loadMaterialTextures(aiMaterial *mat, aiTextureType type,
-                                     char *typeName);
+// void processNode(Model *model, aiNode *node, const aiScene *scene);
+// Mesh processMesh(aiMesh *mesh, const aiScene *scene, const char *directory);
 
 #endif
