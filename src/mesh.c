@@ -69,10 +69,8 @@ void drawMesh(Mesh *mesh, unsigned int shader_program)
         s_loc = glGetUniformLocation(shader_program, name);
         glUniform1ui(s_loc, mesh->textures[i].id);
     }
-    glActiveTexture(GL_TEXTURE0);
-
     // draw mesh
     glBindVertexArray(mesh->vao);
-    glDrawElements(GL_TRIANGLES, mesh->n_tex, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, mesh->n_ind, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }

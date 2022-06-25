@@ -42,46 +42,17 @@ int main(int argc, char const *argv[])
     // projection init
     cam.view = createUniformMatrix("view", 1, &sp);
     cam.projection = createUniformMatrix("projection", 1, &sp);
-    glm_perspective(glm_rad(45.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
+    glm_perspective(glm_rad(180.0f), 1.3f, 0.1f, 100.0f, cam.projection.m);
     updateUniformMatrix(cam.projection, 0);
     
 // models -> loaded w/ assimp
-    Model model = {0};
-    
+    Model model = {0};    
     loadModel(&model, "res/models/backpack/backpack.obj");
-    
-    float f[] = {
-        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
-    };
-    unsigned int i[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-    unsigned int vao, vbo, ebo;
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
 
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof f, f, GL_STATIC_DRAW);
+    mat4wloc mat_model = createUniformMatrix("model", 1, &sp);
+    updateUniformMatrix(mat_model, false);
 
-    glBindVertexArray(ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof i, i, GL_STATIC_DRAW);
-    
-    glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof f, (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof f, (void*)(3*sizeof(float)));
-    glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof f, (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-
-    // TODO test if normal rendering works (should)
-    // TODO understand why not rendering
+    // TODO understand why not rendering -> rendering was wrong, no model matrix
     // TODO understand why funny numbers produced by assimp (consistently same) 
     // allows z-buffer testing-> discard behind
     glEnable(GL_DEPTH_TEST);
@@ -103,8 +74,6 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         drawModel(&model, sp);
-        glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 32, GL_UNSIGNED_INT, i);
 
         // process
         updateCamera();
@@ -112,6 +81,7 @@ int main(int argc, char const *argv[])
 
         // render
         glfwSwapBuffers(window);
+
         glfwPollEvents();
         msleep(16);
     }

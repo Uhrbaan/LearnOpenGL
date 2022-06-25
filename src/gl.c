@@ -240,6 +240,7 @@ mat4wloc createUniformMatrix(const char *uniform_name, unsigned int n_programs,
                              unsigned int *shader_programs)
 {
     mat4wloc um4 = {0};
+    glm_mat4_identity(um4.m);
     um4.n_programs = n_programs;
     um4.shader_programs = malloc(n_programs*sizeof(unsigned int));
     um4.uniform_locations = malloc(n_programs*sizeof(unsigned int));
