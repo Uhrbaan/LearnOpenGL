@@ -62,7 +62,7 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const char *directory)
 {
     Mesh m = {0};
     m.n_vert = mesh->mNumVertices;
-    m.vertices = malloc(sizeof(struct vertex) * m.n_vert);
+    m.vertices = calloc(m.n_vert, sizeof(struct vertex));
 
     // process vertex pos & normals & texture_coo
     for (int i=0; i<m.n_vert; i++)
@@ -71,9 +71,8 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const char *directory)
                sizeof(vec3));
         memcpy(m.vertices[i].normal, (float*)&mesh->mNormals[i], 
                sizeof(vec3));
-        if (mesh->mTextureCoords)
-            memcpy(m.vertices[i].texure_coo, (float*)&mesh->mTextureCoords[i], 
-                   sizeof(vec2));
+        memcpy(m.vertices[i].texure_coo, (float*)&mesh->mTextureCoords[i], 
+               sizeof(vec2));
         // else its already set at 0|0
     }
     

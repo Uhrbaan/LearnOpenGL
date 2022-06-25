@@ -3,13 +3,13 @@
 
 #include <cglm/cglm.h>
 
-struct vertex {vec3 position, normal, texure_coo;};
+struct vertex {vec3 position, normal; vec2 texure_coo;};
 struct texture 
 {
     unsigned int id;
     char *type; // diffuse/specular/...
     char *path; // to be able to check if already loaded
-};
+}; 
 typedef struct mesh
 {
     // mesh data

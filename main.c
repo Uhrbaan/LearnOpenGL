@@ -36,8 +36,7 @@ int main(int argc, char const *argv[])
 
 // shader
     unsigned int sp;
-    if (!(sp = createShaderProgram("res/glsl/vs.vs", 
-                                          "res/glsl/fs.fs")))
+    if (!(sp = createShaderProgram("res/glsl/vs.vs", "res/glsl/fs.fs")))
         return 1;
 
     // projection init
@@ -50,7 +49,40 @@ int main(int argc, char const *argv[])
     Model model = {0};
     
     loadModel(&model, "res/models/backpack/backpack.obj");
+    
+    float f[] = {
+        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
+    };
+    unsigned int i[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+    unsigned int vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
 
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof f, f, GL_STATIC_DRAW);
+
+    glBindVertexArray(ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof i, i, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof f, (void*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof f, (void*)(3*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof f, (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+
+    // TODO test if normal rendering works (should)
+    // TODO understand why not rendering
+    // TODO understand why funny numbers produced by assimp (consistently same) 
     // allows z-buffer testing-> discard behind
     glEnable(GL_DEPTH_TEST);
     // disable cursor
@@ -71,6 +103,8 @@ int main(int argc, char const *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         drawModel(&model, sp);
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 32, GL_UNSIGNED_INT, i);
 
         // process
         updateCamera();
