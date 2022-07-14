@@ -175,6 +175,19 @@ int msleep(long msec);
 const char *file2str(const char *file_path);
 
 #include <stdlib.h>
+/**
+ * @brief push content on a dynamic array
+ * 
+ * @param ptr the adress of the dynamic array
+ * @param sz current bytes used in that array
+ * @param tot_sz total capacity of array in bytes
+ * @param v value tu be inserted
+ * @param v_sz size in bytes of that value
+ * @return new total size
+ */
 size_t da_push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz);
+
+// error handeling
+#include <assert.h>
 
 #endif 
