@@ -6,13 +6,6 @@
 #include <assimp/postprocess.h>
 #include "mesh.h"
 
-typedef struct aiNode aiNode;
-typedef struct aiScene aiScene;
-typedef struct aiMesh aiMesh;
-typedef struct aiMaterial aiMaterial;
-typedef struct aiString aiString;
-typedef enum aiTextureType aiTextureType;
-
 typedef struct
 {
     Mesh *meshes; int n_mesh; // malloced to scene->RootNode->mNumChildren

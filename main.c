@@ -1,6 +1,6 @@
 /* Apprendre le OpenGL (v. 4.6 -> core 3.3)
  * Loading models into game
- * -> Assimp loading library
+ * -> Assimp nloading library
  * 
  * 
  */
@@ -88,3 +88,10 @@ int main(int argc, char const *argv[])
     glfwTerminate();
     return 0;
 }
+
+/* TODO:
+ * refactor a lot 
+ * - put all gl commands in 1 file
+ * - do a wrapper for most libraries, use library in simgle (or multiple) files
+ * 
+ */

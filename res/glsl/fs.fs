@@ -3,9 +3,16 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D texture_diffuse1;
+// struct Material
+// {
+uniform    sampler2D texture_diffuse_1, texture_diffuse_2, texture_diffuse_3;
+uniform    sampler2D texture_specular_1, texture_specular_2;
+// };
+// uniform Material material;
 
 void main()
-{    
-    FragColor = texture(texture_diffuse1, TexCoords);
+{
+    vec3 result = texture(texture_diffuse_1, TexCoords).rgb;
+    // result += texture(texture_specular_1, TexCoords).rgb;
+    FragColor = vec4(result, 1.0);
 }

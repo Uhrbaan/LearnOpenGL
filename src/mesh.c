@@ -1,17 +1,70 @@
 #include "mesh.h"
+#include "utils/utils.h"
 
-void initMesh(Mesh *mesh);
-
-Mesh createMesh(struct vertex *vertices, int vn, 
-                unsigned int *indices, int in,
-                struct texture *textures, int tn)
+// crée un objet Mesh 
+Mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene, const char *directory)
 {
-    Mesh mesh = {0};
-    mesh.vertices = vertices; mesh.n_vert = vn;
-    mesh.indices = indices;   mesh.n_ind = in;
-    mesh.textures = textures; mesh.n_tex = tn;
-    initMesh(&mesh);
-    return mesh;    
+    Mesh m = {0};
+    m.n_vert = mesh->mNumVertices;
+    m.vertices = calloc(m.n_vert, sizeof(struct vertex));
+
+    // process vertex pos & normals & texture_coo
+    for (int i=0; i<m.n_vert; i++)
+    {
+        m.vertices[i].position[0]   = mesh->mVertices[i].x;
+        m.vertices[i].position[1]   = mesh->mVertices[i].y;
+        m.vertices[i].position[2]   = mesh->mVertices[i].z;
+
+        m.vertices[i].normal[0]     = mesh->mNormals[i].x;
+        m.vertices[i].normal[1]     = mesh->mNormals[i].y;
+        m.vertices[i].normal[2]     = mesh->mNormals[i].z;
+
+        m.vertices[i].texure_coo[0] = mesh->mTextureCoords[0][i].x;
+        m.vertices[i].texure_coo[1] = mesh->mTextureCoords[0][i].y;
+    }
+    
+    // process indices
+    for (int i=0; i<mesh->mNumFaces; i++)
+        m.n_ind += mesh->mFaces[i].mNumIndices;
+    m.indices = malloc(sizeof(unsigned int) * m.n_ind);
+    void *p = &m.indices[0];
+    for (int i=0; i<mesh->mNumFaces; i++)
+    {
+        size_t s = sizeof(unsigned int)*mesh->mFaces[i].mNumIndices;
+        memcpy(p, mesh->mFaces[i].mIndices, s);
+        p += s; // move pointer to end of copy adress
+    }
+
+    // material
+    if (mesh->mMaterialIndex >= 0)
+    {
+        struct aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        int d, s;
+        struct texture *diffuse, *specular;
+        d = loadMaterialTextures(&diffuse, material, aiTextureType_DIFFUSE,
+                                       "diffuse", directory);
+        s = loadMaterialTextures(&specular, material, aiTextureType_SPECULAR,
+                                        "specular", directory);
+
+        m.n_tex = d+s;
+        m.textures = malloc(sizeof(struct texture)*m.n_tex);
+        void *p = &m.textures[0];
+        for (int i=0; i<d; i++)
+        {
+            memcpy(p, &diffuse[i], sizeof(struct texture));
+            p+=sizeof(struct texture);
+        }
+        for (int i=0; i<s; i++)
+        {
+            memcpy(p, &specular[i], sizeof(struct texture));
+            p+=sizeof(struct texture);
+        }
+    }
+
+    // generate vao, vbo, ebo from mesh data
+    initMesh(&m);
+
+    return m;
 }
 
 #include <glad/gl.h>
@@ -50,9 +103,9 @@ void initMesh(Mesh *mesh)
 }
 
 /* named -> texture_diffuse_N/specular_N */
+// TODO optimize to remove strcmp & string functions & getUniLoc
 #include <string.h>
 void drawMesh(Mesh *mesh, unsigned int shader_program)
-
 {
     int diffuse_n = 1, specular_n = 1, n=0, s_loc=0;
     char name[100];
@@ -64,13 +117,15 @@ void drawMesh(Mesh *mesh, unsigned int shader_program)
         else if (!strcmp(mesh->textures[i].type, "specular"))
             n = specular_n++;
 
-        snprintf(name, 99, "material.texture_%s_%d", mesh->textures[i].type, n);
+        snprintf(name, 99, "texture_%s_%d", mesh->textures[i].type, n);
         glUseProgram(shader_program);
         s_loc = glGetUniformLocation(shader_program, name);
-        glUniform1ui(s_loc, mesh->textures[i].id);
+        glUniform1ui(s_loc, i);
+        glBindTexture(GL_TEXTURE_2D, mesh->textures[i].id);
     }
     // draw mesh
     glBindVertexArray(mesh->vao);
     glDrawElements(GL_TRIANGLES, mesh->n_ind, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0);
 }

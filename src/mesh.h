@@ -1,7 +1,12 @@
 #ifndef mesh_h
 #define mesh_h
 
+#include "gl.h"
 #include <cglm/cglm.h>
+#include <assimp/cimport.h>
+#include <assimp/mesh.h>
+#include <assimp/scene.h>
+#include <assimp/material.h>
 
 struct vertex {vec3 position, normal; vec2 texure_coo;};
 struct texture 
@@ -12,17 +17,15 @@ struct texture
 }; 
 typedef struct mesh
 {
-    // mesh data
     struct vertex *vertices;  int n_vert;
     unsigned int *indices;    int n_ind;
-    struct texture *textures; int n_tex; // diffuse..specular
+    // stored in the loaded textures (static in model.c -> dynamic array)
+    struct texture *textures; int n_tex;
     // rendering data
     unsigned int vao, vbo, ebo;    
 } Mesh;
 
-Mesh createMesh(struct vertex *vertices, int vn, 
-                unsigned int *indices, int in,
-                struct texture *textures, int tn);
+Mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene, const char *directory);
 void initMesh(Mesh *mesh);
 void drawMesh(Mesh *mesh, unsigned int shader_program);
 
