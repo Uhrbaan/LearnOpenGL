@@ -1,7 +1,7 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec2 TexCoords;
+in vec2 texture_coo;
 
 // struct Material
 // {
@@ -12,7 +12,7 @@ uniform    sampler2D texture_specular_1, texture_specular_2;
 
 void main()
 {
-    vec3 result = texture(texture_diffuse_1, TexCoords).rgb;
+    vec3 result = texture(texture_diffuse_1, texture_coo).rgb;
     // result += texture(texture_specular_1, TexCoords).rgb;
     FragColor = vec4(result, 1.0);
 }
