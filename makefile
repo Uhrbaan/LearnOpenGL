@@ -7,7 +7,7 @@ LDFLAGS =
 # all -l libraries
 LDLIBS = -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm -lassimp
 
-C_FILES := $(wildcard src/*.c src/**/*.c)
+C_FILES := $(shell find src/ -type f -name '*.c') #finds all c files recursively
 OBJS    := $(patsubst src/%.c, obj/%.o, $(C_FILES))
 
 all: $(PROGRAM)
