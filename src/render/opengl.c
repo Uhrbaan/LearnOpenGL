@@ -4,17 +4,12 @@
 // #include <glad/gl.h>
 
 void GLAPIENTRY
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
+MessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity,
+                 GLsizei length, const GLchar* message, const void* userParam )
 {
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? TERM_COL_ERROR("** GL ERROR **") : "" ),
-            type, severity, message );
+  fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+        ( type == GL_DEBUG_TYPE_ERROR ? TERM_COL_ERROR("** GL ERROR **") : "" ),
+        type, severity, message );
 }
 
 static unsigned int current_gl_texture=0, diffuse_n=1, specular_n=1;
@@ -82,11 +77,27 @@ unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
     return program;
 }
 
-unsigned int create2dTexure(unsigned char *data, int channels, int w, int h)
+#include <stdbool.h>
+#include "stb_image.h"
+unsigned int loadTexture(const char *path)
 {
+    printf("loading texture %s...\n", path);
+    stbi_set_flip_vertically_on_load(true);
+    // loading texture
+    int w, h, channels;
     unsigned int texture;
-    GLenum format=0;
-
+    unsigned char *data = NULL;
+    data = stbi_load(path, &w, &h, &channels, 0);
+    if (!data)
+    {
+        fprintf(stderr, TERM_COL_ERROR("error: ") 
+                        TERM_COL_INFO("Failed to load texture:")
+                        "%s\n", path);
+        return 0;
+    }
+    
+    // generating gl texture
+    unsigned int format=0;
     switch (channels)
     {
         case 1:
@@ -104,9 +115,8 @@ unsigned int create2dTexure(unsigned char *data, int channels, int w, int h)
                     "%d number of channels", channels);
             break;
     }
-
     glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture); // sigsegv
+    glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(
         GL_TEXTURE_2D,      // texture type
         0,                  // manual mipmap level
@@ -117,40 +127,21 @@ unsigned int create2dTexure(unsigned char *data, int channels, int w, int h)
         GL_UNSIGNED_BYTE,
         data                // img data
     );
-    return texture;
-}
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
 
-#include <stdbool.h>
-#include "stb_image.h"
-unsigned int loadTexture(const char *path)
-{
-    printf("loading texture %s...\n", path);
-    stbi_set_flip_vertically_on_load(true);
-    // loading texture
-    int w, h, n_channels;
-    unsigned int texture;
-    unsigned char *data = NULL;
-    data = stbi_load(path, &w, &h, &n_channels, 0);
-    if (!data)
-    {
-        fprintf(stderr, TERM_COL_ERROR("error: ") 
-                        TERM_COL_INFO("Failed to load texture:")
-                        "%s\n", path);
-        return 0;
-    }
-    texture = create2dTexure(data, n_channels, w, h);
     free(data);
     return texture;
 }
 
-// TODO -> test
+// TODO optimise to not search uniform location everytime
 void useTexture(int index, char *uniform_name, unsigned int shader_program, 
                 unsigned int gl_id)
 {
     glActiveTexture(GL_TEXTURE0 + index);
     glUseProgram(shader_program);
     unsigned int u_loc = glGetUniformLocation(shader_program, uniform_name);
-    glUniform1ui(u_loc, index); // link to n-th sampler
+    glUniform1i(u_loc, index); // link to n-th sampler
     glBindTexture(GL_TEXTURE_2D, gl_id);
 }
 
@@ -191,44 +182,4 @@ unsigned int genVao(unsigned int *vbo, unsigned int *ebo,
     *vbo = _vbo;
     *ebo = _ebo;
     return _vao;
-}
-
-#include <string.h>
-unsigned int bindTextureAdd(unsigned int loc, int texture_type, 
-                            unsigned int id, unsigned int shader_program)
-{
-    if (!loc)
-    {
-        unsigned int n;
-        char name[100] = {0};
-        switch (texture_type)
-        {
-            case diffuse:
-                n = diffuse_n++;
-                snprintf(name, 99, "texture_diffuse_%d", n);
-                break;
-            case specular:
-                n = specular_n++;
-                snprintf(name, 99, "texture_specular_%d", n);
-                break;
-            
-            default:
-                assert(texture_type || texture_type > 2); 
-                break;
-        }
-        loc = glGetUniformLocation(shader_program, name);
-    }
-    glUseProgram(shader_program);
-    glActiveTexture(GL_TEXTURE0 + current_gl_texture);
-    glUniform1ui(loc, current_gl_texture++);
-    glBindTexture(GL_TEXTURE_2D, id);
-    return current_gl_texture;
-}
-
-void bindTextureReset()
-{
-    current_gl_texture = 0;
-    diffuse_n = 1;
-    specular_n = 1;
-    glActiveTexture(GL_TEXTURE0);
 }

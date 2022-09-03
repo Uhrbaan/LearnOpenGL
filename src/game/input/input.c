@@ -1,11 +1,12 @@
 #include "../../global.h"
+#include "input.h"
 
 
 struct cursor{
     float lastx, lasty;
     float sensitivity;
 };
-struct cursor cursor = {.0f, .0f, .01f};
+struct cursor cursor = {.0f, .0f, .005f};
 void mouse_callback(GLFWwindow* window, double x, double y)
 {
     float offx = (x-cursor.lastx)*cursor.sensitivity;
@@ -24,31 +25,84 @@ void mouse_callback(GLFWwindow* window, double x, double y)
         state.camera.pitch = -89.0f;
 }
 
-float speed = 4.0f;
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    switch (key)
-    {
-    case GLFW_KEY_ESCAPE:
-        glfwSetWindowShouldClose(window, 1);
-        break;
-    case 'Q':
-        if (action == GLFW_PRESS && mods == GLFW_MOD_CONTROL)
-            glfwSetWindowShouldClose(window, 1);
-        break;
-    case 'W': // does not work proprely -> need to check every ms TODO
-        if (action == GLFW_REPEAT)
-        {
-            vec3 mul; glm_vec3_scale(state.camera.z, speed*state.delta_time, mul);
-            glm_vec3_add(state.camera.pos, mul, state.camera.pos);
-            printf("forward!\n");
-        }
-        break;
-
-    
-    default:
-        break;
+    input_context_free:
+    switch (key)                                                                // key combinations that are valid 
+    {                                                                           // despite the input_context
+        case 'Q':
+            if (action == GLFW_PRESS && mods == GLFW_MOD_CONTROL)
+                glfwSetWindowShouldClose(window, 1);
+            break;
+        case GLFW_KEY_ESCAPE:
+                glfwSetWindowShouldClose(window, 1);
+            break;
+        default:
+            goto input_context_specific;
     }
+
+    input_context_specific:
+    switch (state.input_mode)
+    {
+        case general:
+            switch (key)
+            {
+                case GLFW_KEY_ESCAPE:
+                    printf("show pause screen...\n");
+                    break;
+                
+                default:
+                    break;
+            }
+            break;
+        
+        default:
+            printf("this input context is not used\n");
+            break;
+        }
+}
+
+float speed = 4.0f;
+void movement(GLFWwindow *window)
+{
+    // forward
+    if (glfwGetKey(window, 'W') == GLFW_PRESS)
+    {
+        vec3 mul;
+        glm_vec3_scale(state.camera.z, speed * state.delta_time, mul);
+        glm_vec3_add(state.camera.pos, mul, state.camera.pos);
+    }
+    // backward
+    if (glfwGetKey(window, 'S') == GLFW_PRESS)
+    {
+        vec3 mul;
+        glm_vec3_scale(state.camera.z, speed * state.delta_time, mul);
+        glm_vec3_sub(state.camera.pos, mul, state.camera.pos);
+    }
+    // left
+    if (glfwGetKey(window, 'A') == GLFW_PRESS)
+    {
+        vec3 mul;
+        glm_cross(state.camera.z, state.camera.y, mul);
+        glm_normalize(mul);
+        glm_vec3_scale(mul, speed * state.delta_time, mul);
+        glm_vec3_sub(state.camera.pos, mul, state.camera.pos);
+    }
+    // right
+    if (glfwGetKey(window, 'D') == GLFW_PRESS)
+    {
+        vec3 mul;
+        glm_cross(state.camera.z, state.camera.y, mul);
+        glm_normalize(mul);
+        glm_vec3_scale(mul, speed * state.delta_time, mul);
+        glm_vec3_add(state.camera.pos, mul, state.camera.pos);
+    }
+    // up
+    if (glfwGetKey(window, GLFW_KEY_SPACE))
+        state.camera.pos[1] += speed * state.delta_time;
+    // down
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
+        state.camera.pos[1] -= speed * state.delta_time;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

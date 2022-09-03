@@ -7,14 +7,8 @@ struct
 {
     unsigned int n_elements;
     size_t total_sz; // total sz of dynamic array 
-    unsigned int (*txt_id_fn)(const char*); // fn pointer to loadTexture, its a little stupid but idk...
     struct texture *data;
 } loaded_textures={0};
-
-void setGlTextureId_fn(unsigned int (*fn)(const char*))
-{
-    loaded_textures.txt_id_fn = fn;
-}
 
 unsigned int loadMaterialTextures(struct texture ***textures,
                                  const struct aiMaterial *material,
@@ -78,6 +72,7 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
     return m;
 }
 
+#include "../render/opengl.h"
 unsigned int loadMaterialTextures(struct texture ***textures,
                                  const struct aiMaterial *material,
                                  enum aiTextureType ai_texture_type,
@@ -116,22 +111,29 @@ unsigned int loadMaterialTextures(struct texture ***textures,
             if (!empty[0])                                                      // if texture is not present, load it 
             {                                                                   // into the dynamic array
                 t.type = ai_texture_type;
-                t.gl_id = loaded_textures.txt_id_fn(t.path); // fn loadTexture
+                t.gl_id = loadTexture(t.path);
                 loaded_textures.total_sz = 
                 da_push((void*)&loaded_textures.data, 
-                        (size_t)sizeof(struct texture)*loaded_textures.n_elements,
-                        loaded_textures.total_sz,
-                        &t, sizeof(struct texture));
-                *textures[i] = &loaded_textures.data[loaded_textures.n_elements++];
+                    (size_t)sizeof(struct texture)*loaded_textures.n_elements,
+                    loaded_textures.total_sz,
+                    &t, sizeof(struct texture));
+                *textures[i] =
+                    &loaded_textures.data[loaded_textures.n_elements++];
             }
             else 
             {
                 strncpy(loaded_textures.data[empty[1]].path, str.data, 99); 
                 loaded_textures.data[empty[1]].type = ai_texture_type;
-                loaded_textures.data[empty[1]].gl_id =
-                loaded_textures.txt_id_fn(loaded_textures.data[empty[1]].path);
+                loaded_textures.data[empty[1]].gl_id = 
+                    loadTexture(loaded_textures.data[empty[1]].path);
                 *textures[i] = &loaded_textures.data[empty[1]];
             }
+            if (t.gl_id==0 || t.type==0)
+                fprintf(stderr, 
+                    TERM_COL_ERROR("error: ")
+                    TERM_COL_INFO("texture wasn't proprely generated: ")
+                    "texture id: %d, texture type: %d",
+                    t.gl_id, t.type);
         }
     }
     return n;

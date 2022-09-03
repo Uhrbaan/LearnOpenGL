@@ -16,10 +16,7 @@ struct game_data
 
     struct window window;
     struct camera camera;
-
-    // tmp
-    struct model model;
-    unsigned int shader_program;
+    int input_mode;
 };
 extern struct game_data state;                                                  // dont forget to declare variable 
                                                                                 // in c file and then use 'extern'
@@ -30,7 +27,7 @@ void initCamera(bool ortho_projection, vec3 cam_pos,
                 float fov, float yaw, float pitch, float roll,
                 unsigned int shader_program);
 // returns 1 if an error occurs
-int main_loop();
+int main_loop(unsigned int shader_program, struct model model);
 
 void drawModel(struct model m, unsigned int shader_program);
 

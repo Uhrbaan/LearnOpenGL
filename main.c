@@ -21,8 +21,5 @@ int main(int argc, const char *argv[])
     struct model m = {0};
     m = loadModel("res/models/backpack/backpack.obj");
 
-    state.model = m;
-    state.shader_program = sp;
-
-    return main_loop(sp); 
+    return main_loop(sp, m); 
 }

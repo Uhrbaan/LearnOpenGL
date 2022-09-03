@@ -28,7 +28,6 @@ enum texture_type { // based on assimps list
     transmission,
     unknown
 };
-
 struct datawloc
 {
     void *data;
@@ -39,9 +38,6 @@ int initGlad(int x, int y, int w, int h, void* fn_proc_adress);
 // do error checking
 unsigned int loadShader(const char *path, unsigned int type);
 unsigned int createShaderProgram(unsigned int vs, unsigned int fs);
-// dont forget to free data after
-unsigned int create2dTexure(unsigned char *data, int channels, int w, int h);
-
 unsigned int loadTexture(const char *path);
 void useTexture(int index, char *uniform_name, unsigned int shader_program, 
                 unsigned int gl_id);
@@ -61,10 +57,5 @@ void drawElements(unsigned int shader_program, unsigned int vao, int n_indices);
 unsigned int genVao(unsigned int *vbo, unsigned int *ebo, 
                     void *vertices, size_t vert_sz, 
                     void *indices, size_t indi_sz, size_t stride);
-
-// returns the number of the texture
-unsigned int bindTextureAdd(unsigned int loc, int texture_type, 
-                            unsigned int id, unsigned int shader_program);
-void bindTextureReset();
 
 #endif

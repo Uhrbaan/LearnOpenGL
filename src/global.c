@@ -16,7 +16,6 @@ void initApplicationGlobalState(int win_w, int win_h, char *title)
         initGLFW(&state.window.glfw_window, win_w, win_h, title, NULL, NULL);
     assert(result_fn);
     initGlad(0, 0, win_w, win_h, result_fn);
-    setGlTextureId_fn(loadTexture);
 }
 
 void initCamera(bool ortho_projection, vec3 cam_pos, 
@@ -62,7 +61,7 @@ void linkCamera2Uniform(struct camera *camera, unsigned int shader_program)
 }
 
 static float last_frame = 0;
-int main_loop(unsigned int shader_program)
+int main_loop(unsigned int shader_program, struct model model)
 {
     glEnable(GL_DEPTH_TEST);                                                    // initialisation
     // disable cursor
@@ -75,14 +74,14 @@ int main_loop(unsigned int shader_program)
         last_frame = current_frame;
 
         // input
-        // processInput(state.window.glfw_window);
+        movement(state.window.glfw_window);
 
         // clearing screen
         glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // rendering
-        drawModel(state.model, state.shader_program);
+        drawModel(model, shader_program);
 
         // processing perspective changes
         updateCamera(&state.camera);
@@ -133,29 +132,29 @@ void generateVAO(struct mesh *mesh)
 // drawing
 void drawMesh(struct mesh m, unsigned int shader_program)
 {
-    int diffuse_n = 1, specular_n = 1, n=0, s_loc=0;
-    char name[100] = {0};
+    int diffuse_n=0, specular_n=0, n=0;
+    char uniform_name[100] = {0};
+    char base[20] = "texture_";
+    char type[20] = {0};
+
     for (int i=0; i<m.n_text; i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i);                                       // activate proper texture unit
         switch (m.textures[i]->type)
         {
-        case diffuse:
-            snprintf(name, 99, "texture_diffuse_%d", diffuse_n++);
-            break;
-        case specular:
-            snprintf(name, 99, "texture_specular_%d", specular_n++);
-            break;
-
-        default:
-            break;
+            case diffuse:
+                n = diffuse_n++;
+                strncpy(type, "diffuse", 20-1);
+                break;
+            case specular:
+                n = specular_n++;
+                strncpy(type, "specular", 20-1);
+            default:
+                break;
         }
-        glUseProgram(shader_program);
-        s_loc = glGetUniformLocation(shader_program, name);
-        glUniform1i(s_loc, i);
-        glBindTexture(GL_TEXTURE_2D, m.textures[i]->gl_id);
+        snprintf(uniform_name, 100-1, "%s%s[%d]", base, type, n);
+        useTexture(i, uniform_name, shader_program, m.textures[i]->gl_id);
     }
-        // bindTextureAdd(0, m.textures[i]->type, m.textures[i]->gl_id, shader_program);
+
     drawElements(shader_program, m.vao, m.n_indi);
 }
 
