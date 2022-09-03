@@ -33,9 +33,10 @@ void initCamera(bool ortho_projection, vec3 cam_pos,
     state.camera.yaw = yaw; 
     state.camera.pitch = pitch;
     state.camera.roll = roll; // will probably not be used
-    updateCamera(&state.camera);
     linkCamera2Uniform(&state.camera, shader_program);                          // link the camera struc to the according
-    updateCameraUniform(state.camera, shader_program);                          // uniform in the shader
+                                                                                // uniform in the shader
+    updateCamera(&state.camera);
+    updateCameraUniform(state.camera, shader_program);
     glm_mat4_identity(state.camera.model);
 }
 
@@ -138,7 +139,7 @@ void drawMesh(struct mesh m, unsigned int shader_program)
 {
     int diffuse_n=0, specular_n=0, n=0;
     char uniform_name[100] = {0};
-    char base[20] = "texture_";
+    char base[20] = "material";
     char type[20] = {0};
 
     for (int i=0; i<m.n_text; i++)
@@ -146,16 +147,18 @@ void drawMesh(struct mesh m, unsigned int shader_program)
         switch (m.textures[i]->type)
         {
             case diffuse:
-                n = diffuse_n++;
+                // n = diffuse_n++;
                 strncpy(type, "diffuse", 20-1);
                 break;
             case specular:
-                n = specular_n++;
+                // n = specular_n++;
                 strncpy(type, "specular", 20-1);
+            case emissive:
+                strncpy(type, "emisive", 20-1);
             default:
                 break;
         }
-        snprintf(uniform_name, 100-1, "%s%s[%d]", base, type, n);
+        snprintf(uniform_name, 100-1, "%s.%s", base, type);
         useTexture(i, uniform_name, shader_program, m.textures[i]->gl_id);
     }
 

@@ -8,7 +8,7 @@ uniform vec3 cam_pos;
 
 struct Material
 {
-    sampler2D diffuse, specular, emission;
+    sampler2D diffuse, specular, emissive;
     float shininess;
 }; 
 uniform Material material;
@@ -44,34 +44,38 @@ struct Spot_light                                                               
 }; 
 uniform Spot_light spot_light[SPOT_LIGHTS];
 
-vec3 directionalLight(Directional_light light, vec3 normal, vec3 view_dir)      // directional light fn
+vec3 directionalLight(Directional_light light, vec3 normal, vec3 view_direction)      // directional light fn
 {
     vec3 light_dir = normalize(-light.direction);
-    // diffuse
-    float diff = max(dot(normal, light_dir), 0.0);
-    // specular 
-    vec3 reflect_dir = reflect(-light_dir, normal);
-    float spec = 
-        pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
-    // results
-    vec3 ambient = 
-        light.ambient * texture(material.diffuse, texture_coo).rgb;
-    vec3 diffuse = 
-        light.diffuse * diff * texture(material.diffuse, texture_coo).rgb;
-    vec3 specular = 
-        light.specular * spec * texture(material.specular, texture_coo).rgb;
+    vec3 ambient = vec3(0), diffuse = vec3(0), specular = vec3(0);
+
+    ambient = 
+        light.ambient *
+        texture(material.diffuse, texture_coo).rgb;
+
+    diffuse =                                                                   // diffuse
+        light.diffuse *
+        max(dot(normal, light_dir), 0.0) *
+        texture(material.diffuse, texture_coo).rgb;
+
+    vec3 reflect_direction = reflect(-light_dir, normal);
+    specular =                                                                  // specular
+        light.specular *
+        pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
+        texture(material.specular, texture_coo).rgb;
+
     return (ambient + diffuse + specular);
 }
 
 
-vec3 pointLight(Point_light light, vec3 normal, vec3 frag_pos, vec3 view_dir)   // point light fn
+vec3 pointLight(Point_light light, vec3 normal, vec3 frag_pos, vec3 view_direction)   // point light fn
 {
     vec3 light_dir = normalize(light.position-frag_pos);
     // diffuse
     float diff = max(dot(normal, light_dir), 0.0);
     // specular
     vec3 reflect_dir = reflect(-light_dir, normal);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(view_direction, reflect_dir), 0.0), material.shininess);
     // attenuation -> F=1/(Kc + Kl·d + Kq·d²)
     float d = length(light.position-frag_pos);
     float attenuation = 
@@ -86,14 +90,14 @@ vec3 pointLight(Point_light light, vec3 normal, vec3 frag_pos, vec3 view_dir)   
     return (ambient + diffuse + specular);
 }
 
-vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_dir)     // spot light fn
+vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_direction)     // spot light fn
 {
     vec3 light_dir = normalize(light.position-frag_pos);
     // diffuse
     float diff = max(dot(normal, light_dir), 0.0);
     // specular
     vec3 reflect_dir = reflect(-light_dir, normal);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(view_direction, reflect_dir), 0.0), material.shininess);
     // attenuation -> F=1/(Kc + Kl·d + Kq·d²)
     float d, attenuation;
     d           = length(light.position-frag_pos);
@@ -120,18 +124,22 @@ vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_dir)    
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 view_dir = normalize(cam_pos-frag_pos);
+    vec3 view_direction = normalize(cam_pos-frag_pos);
 
     vec3 result = vec3(.0);
     // directional lighting
     for (int i=0; i<DIRECTIONAL_LIGHTS; i++)
-        result += directionalLight(directional_light[i], norm, view_dir);
-    // point lights
-    for (int i=0; i<POINT_LIGHTS; i++)
-        result += pointLight(point_light[i], norm, frag_pos, view_dir);
-    // spot light
-    for (int i=0; i<SPOT_LIGHTS; i++)
-        result += spot_Light(spot_light[i], norm, frag_pos, view_dir);
+        result += directionalLight(directional_light[i], norm, view_direction);
+    // // point lights
+    // for (int i=0; i<POINT_LIGHTS; i++)
+    //     result += pointLight(point_light[i], norm, frag_pos, view_direction);
+    // // spot light
+    // for (int i=0; i<SPOT_LIGHTS; i++)
+    //     result += spot_Light(spot_light[i], norm, frag_pos, view_direction);
+
+
+    // result += texture(material.diffuse, texture_coo).rgb;                       // for testing -> works
+    // result += directional_light[0].ambient;
 
     FragColor = vec4(result, 1.0);
 }

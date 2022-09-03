@@ -48,8 +48,25 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             switch (key)
             {
                 case GLFW_KEY_ESCAPE:
-                    printf("show pause screen...\n");
+                    if (action == GLFW_PRESS)
+                        printf("show pause screen...\n");
                     break;
+                case 'P':
+                    if (action == GLFW_PRESS)
+                        printf("pos: {%.1f, %.1f, %.1f}\n"
+                               "x:   {%.1f, %.1f, %.1f}\n"
+                               "y:   {%.1f, %.1f, %.1f}\n"
+                               "z:   {%.1f, %.1f, %.1f}\n"
+                               "fov: %.1fR, pitch: %.1fR, yaw: %.1fR, roll: %.1fR",
+                        state.camera.pos[0], state.camera.pos[1], state.camera.pos[2],
+                        state.camera.x[0], state.camera.x[1], state.camera.x[2], 
+                        state.camera.y[0], state.camera.y[1], state.camera.y[2], 
+                        state.camera.z[0], state.camera.z[1], state.camera.z[2],
+                        state.camera.fov, 
+                        state.camera.pitch,
+                        state.camera.yaw, 
+                        state.camera.roll
+                        );
                 
                 default:
                     break;

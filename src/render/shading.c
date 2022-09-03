@@ -29,9 +29,7 @@ static struct
                  constant, linear, quadratic, cutoff, outer_cutoff;
 } *spot_light_uniform = NULL;
 
-
 static unsigned int LIGHT_SHADER_PROGRAM;
-
 
 void initShading(unsigned int shader_program)
 {
@@ -41,7 +39,7 @@ void initShading(unsigned int shader_program)
     material_uniform = glGetUniformLocation(shader_program, "material");
 
 
-    glGetUniformuiv(                                                             // directional light
+    glGetUniformuiv(                                                            // directional light
         shader_program, 
         glGetUniformLocation(shader_program, "directional_light_n"),
         &directional_light_n);
@@ -162,8 +160,8 @@ void updateDirectionalLight(unsigned int index)
 {
     glUseProgram(LIGHT_SHADER_PROGRAM);
 
-    glUniform3fv(directional_light_uniform[index].diffuse, 1, 
-                 directional_light[index].diffuse);
+    glUniform3fv(directional_light_uniform[index].direction, 1, 
+                 directional_light[index].direction);
     glUniform3fv(directional_light_uniform[index].ambient, 1, 
                  directional_light[index].ambient);
     glUniform3fv(directional_light_uniform[index].diffuse, 1, 

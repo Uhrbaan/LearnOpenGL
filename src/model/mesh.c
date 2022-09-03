@@ -35,6 +35,7 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
 
         m.vertices[i].uv[0]   = mesh->mTextureCoords[0][i].x;
         m.vertices[i].uv[1]   = mesh->mTextureCoords[0][i].y;
+        
     }
     
     // process indices
@@ -73,19 +74,22 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
 }
 
 #include "../render/opengl.h"
+
+// TODO rewrite this hidious function & implement material instead of textures
 unsigned int loadMaterialTextures(struct texture ***textures,
-                                 const struct aiMaterial *material,
-                                 enum aiTextureType ai_texture_type,
-                                 const char *directory)
+                                  const struct aiMaterial *material,
+                                  enum aiTextureType ai_texture_type,
+                                  const char *directory)
 {
     int n = aiGetMaterialTextureCount(material, ai_texture_type);
-    *textures = malloc(sizeof(struct texture*) * n);
+    *textures = calloc(n, sizeof(struct texture*));
     assert(textures);
 
     for (int i=0; i<n; i++)
     {
         struct aiString str = {0};
         struct texture t    = {0};
+        float shininess = 1.f;
         bool skip=false; unsigned int empty[2]={0};
         aiGetMaterialTexture(material, ai_texture_type, i, &str,                // get the name of the texture
                              NULL, NULL, NULL, NULL, NULL, NULL);
