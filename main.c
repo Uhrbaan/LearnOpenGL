@@ -9,7 +9,7 @@ int main(int argc, const char *argv[])
     unsigned int sp = 0;
     sp = createShaderProgram(
         loadShader("res/glsl/vs.vs", GL_VERTEX_SHADER),
-        loadShader("res/glsl/fs.fs", GL_FRAGMENT_SHADER)
+        loadShader("res/glsl/light.fs", GL_FRAGMENT_SHADER)
     );
     initCamera(false, (vec3){0.0f, 0.0f, 0.0f}, 
                       (vec3){1.0f, 0.0f, 0.0f}, 
@@ -21,5 +21,12 @@ int main(int argc, const char *argv[])
     struct model m = {0};
     m = loadModel("res/models/backpack/backpack.obj");
 
+#include "src/render/shading.h"
+    initShading(sp);
+    glm_vec3_copy((vec3){-0.2f, -1.0f, -0.3f}, directional_light[0].direction);
+    glm_vec3_copy((vec3){ 1.0f,  1.0f,  1.0f}, directional_light[0].direction);
+    glm_vec3_copy((vec3){ 1.0f,  1.0f,  1.0f}, directional_light[0].direction);
+    glm_vec3_copy((vec3){ 1.0f,  1.0f,  1.0f}, directional_light[0].direction);
+    updateDirectionalLight(0);
     return main_loop(sp, m); 
 }

@@ -7,8 +7,8 @@ void GLAPIENTRY
 MessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity,
                  GLsizei length, const GLchar* message, const void* userParam )
 {
-  fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-        ( type == GL_DEBUG_TYPE_ERROR ? TERM_COL_ERROR("** GL ERROR **") : "" ),
+  fprintf(stderr, "%s type = 0x%x, severity = 0x%x, message = %s\n",
+        ( type == GL_DEBUG_TYPE_ERROR ? TERM_COL_ERROR("GL error: ") : "???" ),
         type, severity, message );
 }
 
@@ -21,7 +21,8 @@ int initGlad(int x, int y, int w, int h, void* fn_proc_adress)
         printf(TERM_COL_ERROR("error") ": Failed to initialize GLAD\n");
         return 1;
     }
-    glEnable              ( GL_DEBUG_OUTPUT );
+    glEnab
+    le              ( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
     glViewport(x, y, w, h);
     return 0;
@@ -45,12 +46,7 @@ unsigned int loadShader(const char *path, unsigned int type)
     // checking for compile errors
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success)
-    {
-        char info_log[512];
-        glGetShaderInfoLog(shader, 512, NULL, info_log);
-        fprintf(stderr, ERROR_MSG_LOG("failed shader compilation", info_log));
-        shader = 0;
-    }
+        exit(EXIT_FAILURE);
     free((char*)shader_source); // casting to non-const
     return shader;
 }

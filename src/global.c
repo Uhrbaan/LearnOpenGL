@@ -86,6 +86,10 @@ int main_loop(unsigned int shader_program, struct model model)
         // processing perspective changes
         updateCamera(&state.camera);
         updateCameraUniform(state.camera, shader_program);
+        glUniform3fv(
+            glGetUniformLocation(shader_program, "cam_pos"),
+            1, state.camera.pos
+        );
 
         glfwSwapBuffers(state.window.glfw_window);
 
