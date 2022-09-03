@@ -21,8 +21,7 @@ int initGlad(int x, int y, int w, int h, void* fn_proc_adress)
         printf(TERM_COL_ERROR("error") ": Failed to initialize GLAD\n");
         return 1;
     }
-    glEnab
-    le              ( GL_DEBUG_OUTPUT );
+    glEnable              ( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
     glViewport(x, y, w, h);
     return 0;
