@@ -174,8 +174,8 @@ void updatePointLight(unsigned int index)
 {
     glUseProgram(LIGHT_SHADER_PROGRAM);
 
-    glUniform3fv(point_light_uniform[index].diffuse, 1, 
-                 point_light[index].diffuse);
+    glUniform3fv(point_light_uniform[index].position, 1, 
+                 point_light[index].position);
     glUniform3fv(point_light_uniform[index].ambient, 1, 
                  point_light[index].ambient);
     glUniform3fv(point_light_uniform[index].diffuse, 1, 
@@ -193,8 +193,10 @@ void updatespotLight(unsigned int index)
 {
     glUseProgram(LIGHT_SHADER_PROGRAM);
 
-    glUniform3fv(spot_light_uniform[index].diffuse, 1, 
-                 spot_light[index].diffuse);
+    glUniform3fv(spot_light_uniform[index].position, 1, 
+                 spot_light[index].position);
+    glUniform3fv(spot_light_uniform[index].direction, 1, 
+                 spot_light[index].direction);
     glUniform3fv(spot_light_uniform[index].ambient, 1, 
                  spot_light[index].ambient);
     glUniform3fv(spot_light_uniform[index].diffuse, 1, 

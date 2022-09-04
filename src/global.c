@@ -1,5 +1,6 @@
 #include "global.h"
 #include "game/input/input.h"
+#include "render/shading.h"
 
 struct game_data state;
 void linkCamera2Uniform(struct camera *camera, unsigned int shader_program);
@@ -67,6 +68,7 @@ int main_loop(unsigned int shader_program, struct model model)
     glEnable(GL_DEPTH_TEST);                                                    // initialisation
     // disable cursor
     glfwSetInputMode(state.window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     while(!glfwWindowShouldClose(state.window.glfw_window))
     {
         // uptdate delta
@@ -91,6 +93,10 @@ int main_loop(unsigned int shader_program, struct model model)
             glGetUniformLocation(shader_program, "cam_pos"),
             1, state.camera.pos
         );
+        glm_vec3_copy(state.camera.pos, spot_light[0].position);
+        glm_vec3_copy(state.camera.z, spot_light[0].direction);
+        glm_vec3_negate(spot_light[0].direction);
+        updatespotLight(0);
 
         glfwSwapBuffers(state.window.glfw_window);
 

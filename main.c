@@ -23,11 +23,32 @@ int main(int argc, const char *argv[])
 
 #include "src/render/shading.h"
     initShading(sp);
-    glm_vec3_copy((vec3){-0.2f, -1.0f, -0.3f}, directional_light[0].direction);
-    glm_vec3_copy((vec3){ 0.2f,  0.2f,  0.3f}, directional_light[0].ambient);
-    glm_vec3_copy((vec3){ 1.0f,  1.0f,  1.0f}, directional_light[0].diffuse);
+    glm_vec3_copy((vec3){-0.2f, -1.0f, -0.3f}, directional_light[0].direction); // directional light source
+    glm_vec3_copy((vec3){ 0.2f,  0.2f,  0.2f}, directional_light[0].ambient);
+    glm_vec3_copy((vec3){ 1.0f,  0.0f,  0.0f}, directional_light[0].diffuse);
     glm_vec3_copy((vec3){ 0.5f,  0.5f,  1.0f}, directional_light[0].specular);
     updateDirectionalLight(0);
+
+    glm_vec3_copy((vec3){ 3.0f, 2.0f, 4.0f}, point_light[0].position);
+    glm_vec3_copy((vec3){ 0.0f, 0.0f, 0.0f}, point_light[0].ambient);
+    glm_vec3_copy((vec3){ 0.0f, 1.0f, 0.0f}, point_light[0].diffuse);
+    glm_vec3_copy((vec3){ 0.0f, 1.0f, 0.0f}, point_light[0].specular);
+    point_light[0].constant  = 1.0f;                                            // configurations for 32 units
+    point_light[0].linear    = 0.09f;
+    point_light[0].quadratic = 0.032f;
+    updatePointLight(0);
+
+    glm_vec3_copy((vec3){ -.2f, 3.5f, -.5f}, spot_light[0].position);
+    glm_vec3_copy((vec3){ 0.0f, 0.0f, -1.f}, spot_light[0].direction);
+    glm_vec3_copy((vec3){ 0.0f, 0.0f, 0.0f}, spot_light[0].ambient);
+    glm_vec3_copy((vec3){ 0.0f, 0.0f, 1.0f}, spot_light[0].diffuse);
+    glm_vec3_copy((vec3){ 0.0f, 0.0f, 1.0f}, spot_light[0].specular);
+    spot_light[0].constant  = 1.0f;
+    spot_light[0].linear    = 0.045f;
+    spot_light[0].quadratic = 0.0075f;
+    spot_light[0].cutoff    = .87f;
+    spot_light[0].outer_cutoff = .91f;
+    updatespotLight(0);
 
     // tmp set material.shininess to 32
     unsigned int material_shininess_loc = 

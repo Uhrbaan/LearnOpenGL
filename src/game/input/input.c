@@ -57,7 +57,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                                "x:   {%.1f, %.1f, %.1f}\n"
                                "y:   {%.1f, %.1f, %.1f}\n"
                                "z:   {%.1f, %.1f, %.1f}\n"
-                               "fov: %.1fR, pitch: %.1fR, yaw: %.1fR, roll: %.1fR",
+                               "fov: %.1fR, pitch: %.1fR, yaw: %.1fR, roll: %.1fR\n",
                         state.camera.pos[0], state.camera.pos[1], state.camera.pos[2],
                         state.camera.x[0], state.camera.x[1], state.camera.x[2], 
                         state.camera.y[0], state.camera.y[1], state.camera.y[2], 
@@ -142,6 +142,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     state.window.w = width;
     state.window.h = height;
-    glViewport(0, 0, width, height);                                            // resets the size of the rendering window
-    state.camera.ratio = (float)width/(float)height;
+    glViewport(0, 0, width, height);                                            // resets the size of the rendering 
+    state.camera.ratio = (float)width/(float)height;                            // window
 } 
