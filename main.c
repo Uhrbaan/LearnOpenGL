@@ -46,8 +46,8 @@ int main(int argc, const char *argv[])
     spot_light[0].constant  = 1.0f;
     spot_light[0].linear    = 0.045f;
     spot_light[0].quadratic = 0.0075f;
-    spot_light[0].cutoff    = .87f;
-    spot_light[0].outer_cutoff = .91f;
+    spot_light[0].cutoff    = cos(glm_rad(12.5f));
+    spot_light[0].outer_cutoff = cos(glm_rad(17.5f));
     updatespotLight(0);
 
     // tmp set material.shininess to 32

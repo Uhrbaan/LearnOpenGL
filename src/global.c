@@ -95,7 +95,7 @@ int main_loop(unsigned int shader_program, struct model model)
         );
         glm_vec3_copy(state.camera.pos, spot_light[0].position);
         glm_vec3_copy(state.camera.z, spot_light[0].direction);
-        glm_vec3_negate(spot_light[0].direction);
+        // glm_vec3_negate(spot_light[0].direction);
         updatespotLight(0);
 
         glfwSwapBuffers(state.window.glfw_window);
