@@ -56,5 +56,7 @@ int main(int argc, const char *argv[])
     glUseProgram(sp);
     glUniform1f(material_shininess_loc, 32.f);
 
-    return main_loop(sp, m); 
+    main_loop(sp, m); 
+
+    return 0; 
 }

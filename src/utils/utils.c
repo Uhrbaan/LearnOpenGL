@@ -44,7 +44,7 @@ const char *file2str(const char *file_path)
 }
 
 // implementation of simple dynamic array
-size_t da_push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz)
+size_t push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz)
 {
     size_t new_sz = tot_sz;
     if (sz+v_sz > tot_sz)

@@ -170,6 +170,7 @@
                                    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,\
                                    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f}
         
+#define PATH_MAX 4096
 // sleeps for msec miliseconds
 int msleep(long msec);
 const char *file2str(const char *file_path);
@@ -185,7 +186,17 @@ const char *file2str(const char *file_path);
  * @param v_sz size in bytes of that value
  * @return new total size
  */
-size_t da_push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz);
+size_t push(void **ptr, size_t sz, size_t tot_sz, void *v, size_t v_sz);
+/**
+ * @brief push content on a dynamic array
+ * 
+ * @param ptr the adress of the dynamic array
+ * @param sz current bytes used in that array
+ * @param tot_sz total capacity of array in bytes
+ * @param v value of the poped element
+ * @param v_sz size in bytes of that value
+ * @return new total size
+ */
 
 // error handeling
 #include <assert.h>

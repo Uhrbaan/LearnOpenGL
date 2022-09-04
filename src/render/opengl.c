@@ -1,6 +1,7 @@
 #include "opengl.h"
 #include "../utils/utils.h"
 #include <assert.h>
+#include "shading.h"
 // #include <glad/gl.h>
 
 void GLAPIENTRY
@@ -74,7 +75,7 @@ unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
 
 #include <stdbool.h>
 #include "stb_image.h"
-unsigned int loadTexture(const char *path)
+unsigned int loadGLTexture(const char *path) // TODO make function faster
 {
     printf("loading texture %s...\n", path);
     stbi_set_flip_vertically_on_load(true);
@@ -124,8 +125,8 @@ unsigned int loadTexture(const char *path)
     );
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
-
     free(data);
+
     return texture;
 }
 

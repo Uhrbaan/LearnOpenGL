@@ -15,40 +15,14 @@ unsigned int loadMaterialTextures(struct texture ***textures,
                                  enum aiTextureType ai_texture_type, 
                                  const char *directory);
 
+#include "../assimp_loading/assimp.h"
 struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene, 
                          const char *directory)
 {
     struct mesh m = {0};
-    m.n_vert = mesh->mNumVertices;
-    m.vertices = calloc(m.n_vert, sizeof(struct vertex));
-
-    // process vertex pos & normals & texture_coo
-    for (int i=0; i<m.n_vert; i++)
-    {
-        m.vertices[i].pos[0]  = mesh->mVertices[i].x;
-        m.vertices[i].pos[1]  = mesh->mVertices[i].y;
-        m.vertices[i].pos[2]  = mesh->mVertices[i].z;
-
-        m.vertices[i].norm[0] = mesh->mNormals[i].x;
-        m.vertices[i].norm[1] = mesh->mNormals[i].y;
-        m.vertices[i].norm[2] = mesh->mNormals[i].z;
-
-        m.vertices[i].uv[0]   = mesh->mTextureCoords[0][i].x;
-        m.vertices[i].uv[1]   = mesh->mTextureCoords[0][i].y;
-        
-    }
-    
-    // process indices
-    for (int i=0; i<mesh->mNumFaces; i++)
-        m.n_indi += mesh->mFaces[i].mNumIndices;
-    m.indices = malloc(sizeof(unsigned int) * m.n_indi);
-    void *p = &m.indices[0];
-    for (int i=0; i<mesh->mNumFaces; i++)
-    {
-        size_t s = sizeof(unsigned int)*mesh->mFaces[i].mNumIndices;
-        memcpy(p, mesh->mFaces[i].mIndices, s);
-        p += s; // move pointer to end of copy adress
-    }
+    m.n_vert = extractVertices(mesh, (float**)&m.vertices);
+    m.n_indi = extractIndices (mesh, (unsigned int**)&m.indices);
+    m.material = extractMaterial(mesh, scene, directory);
 
     // material
     if (mesh->mMaterialIndex >= 0)
@@ -115,9 +89,9 @@ unsigned int loadMaterialTextures(struct texture ***textures,
             if (!empty[0])                                                      // if texture is not present, load it 
             {                                                                   // into the dynamic array
                 t.type = ai_texture_type;
-                t.gl_id = loadTexture(t.path);
+                t.gl_id = loadGLTexture(t.path);
                 loaded_textures.total_sz = 
-                da_push((void*)&loaded_textures.data, 
+                push((void*)&loaded_textures.data, 
                     (size_t)sizeof(struct texture)*loaded_textures.n_elements,
                     loaded_textures.total_sz,
                     &t, sizeof(struct texture));
@@ -129,7 +103,7 @@ unsigned int loadMaterialTextures(struct texture ***textures,
                 strncpy(loaded_textures.data[empty[1]].path, str.data, 99); 
                 loaded_textures.data[empty[1]].type = ai_texture_type;
                 loaded_textures.data[empty[1]].gl_id = 
-                    loadTexture(loaded_textures.data[empty[1]].path);
+                    loadGLTexture(loaded_textures.data[empty[1]].path);
                 *textures[i] = &loaded_textures.data[empty[1]];
             }
             if (t.gl_id==0 || t.type==0)

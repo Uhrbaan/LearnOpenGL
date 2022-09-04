@@ -31,7 +31,9 @@ static struct
 
 static unsigned int LIGHT_SHADER_PROGRAM;
 
-void initShading(unsigned int shader_program)
+/******************************** initShading *********************************/
+
+void initShading(unsigned int shader_program)                                   // <initShading>
 {
     int i; char uniform_name[100];
     LIGHT_SHADER_PROGRAM = shader_program;
@@ -69,7 +71,7 @@ void initShading(unsigned int shader_program)
     assert(directional_light);
 
 
-    glGetUniformuiv(                                                             // point light
+    glGetUniformuiv(                                                            // point light
         shader_program, 
         glGetUniformLocation(shader_program, "point_light_n"),
         &point_light_n);
@@ -108,7 +110,7 @@ void initShading(unsigned int shader_program)
     assert(point_light);
 
 
-    glGetUniformuiv(                                                             // spot light
+    glGetUniformuiv(                                                            // spot light
         shader_program, 
         glGetUniformLocation(shader_program, "spot_light_n"),
         &spot_light_n);
@@ -155,6 +157,8 @@ void initShading(unsigned int shader_program)
         calloc(spot_light_n, sizeof(struct spot_light));
     assert(spot_light);
 }
+
+/******************************* update Lights ********************************/
 
 void updateDirectionalLight(unsigned int index)
 {
@@ -214,3 +218,252 @@ void updatespotLight(unsigned int index)
     glUniform1f (spot_light_uniform[index].outer_cutoff,
                  spot_light[index].outer_cutoff);
 }
+
+/******************************* material list ********************************/
+
+#include "../utils/utils.h"
+struct material_list material_list = {0};                                       // <materials>
+
+int addMaterial(struct material material)
+{
+    int index = getMaterialIndex(material);
+    if (index>=0)
+        return index;
+    for (int i=0; i<material_list.elements; i++)
+    {
+        if (!memcmp(&material_list.material[i], &(struct material){0}, 
+            sizeof(struct material)))
+        {
+            memcpy(&material_list.material[i], &material, 
+                   sizeof(struct material));
+            return i;
+        }
+    }
+    size_t new_size =                                                           // if there is no empty space in the arr
+        push((void**)&material_list.material, 
+             sizeof(struct material)*material_list.elements,
+             sizeof(struct material)*material_list.max_elements,
+             (void*)&material, sizeof(struct material));
+    material_list.elements++;
+    material_list.max_elements = new_size / sizeof(struct material);
+    return material_list.elements-1;
+}
+
+struct material rmMaterial(int index)
+{
+    struct material material = {0};
+
+    if (index>=material_list.elements)
+    {
+        fprintf(stderr, ERROR_MSG_LOG("indexing more than allowed", 
+                "index is larger than the number of elements in material_list"));
+        return material;
+    }
+    if (index<0)
+    {
+        memcpy(&material, &material_list.material[material_list.elements+index+1],
+               sizeof(struct material));
+        memset(&material_list.material[material_list.elements+index+1], 0, 
+               sizeof(struct material));
+    }
+    else 
+    {
+        memcpy(&material, &material_list.material[index],
+               sizeof(struct material));
+        memset(&material_list.material[index], 0, 
+               sizeof(struct material));
+    }
+    return material;
+}
+
+int getMaterialIndex(struct material material)
+{
+    for (int i=0; i<material_list.elements; i++)
+    {
+        if (!memcmp(&material_list.material[i], &material, 
+            sizeof(struct material)))
+        return i;
+    }
+    return -1;
+}
+
+void printMaterialList()
+{
+    printf("\x1b[0;1mMATERIAL LIST\x1b[0;0m\n"
+           "elements: %d\t max_elements: %d\n"
+           "┌─────────┬──────────┬─────────┬──────────┬───────────┬──────────┐\n"
+           "│ diffuse │ specular │ ambient │ emissive │ shininess │ strenght │\n"
+           "├─────────┼──────────┼─────────┼──────────┼───────────┼──────────┤\n",
+           material_list.elements, material_list.max_elements);
+   
+    for (int i=0; i<material_list.elements; i++)
+    {
+        printf("│ %7d │ %8d │ %7d │ %8d │ %9.2f │ %8.2f │\n",
+               material_list.material[i].diffuse, 
+               material_list.material[i].specular,
+               material_list.material[i].ambient,
+               material_list.material[i].emissive,
+               material_list.material[i].shininess,
+               material_list.material[i].strenght);
+    }
+    printf("└─────────┴──────────┴─────────┴──────────┴───────────┴──────────┘\n");
+
+}
+
+/***************************** texture list ***********************************/
+
+struct texture_list texture_list = {0};
+
+int addTexture (unsigned int texture_type, unsigned int texture_id, 
+                const char *texture_path)
+{
+    int index;
+    char *tpath = calloc(strlen(texture_path)+1, 1);
+    strcpy(tpath, texture_path);
+
+    index = getTexture(NULL, &texture_type, &texture_id, &tpath);        // check if texture already exists
+    if (index>=0)
+        return index; 
+    for (int i=0; i<texture_list.elements; i++)
+    {
+        if (texture_list.texture_id[i] == 0)                                    // if the glid is 0, it means that the 
+        {                                                                       // texture is invalid anyway
+            texture_list.texture_type[i] = texture_type;
+            texture_list.texture_id[i]   = texture_id;
+            texture_list.texture_path[i] = tpath;
+            return i;
+        }   
+    }                                                                           // have to generate bigger array
+
+    push((void**)&texture_list.texture_type, 
+         sizeof(unsigned int) * texture_list.elements,
+         sizeof(unsigned int) * texture_list.max_elements,
+         (void*)&texture_type, sizeof(unsigned int));
+
+    push((void**)&texture_list.texture_id,
+         sizeof(unsigned int) * texture_list.elements,
+         sizeof(unsigned int) * texture_list.max_elements,
+         (void*)&texture_id, sizeof(unsigned int));
+    
+    size_t new_size = 
+        push((void**)&texture_list.texture_path, 
+            sizeof(char *) * texture_list.elements,
+            sizeof(char *) * texture_list.max_elements,
+            (void*)&tpath, sizeof(char *));
+
+    texture_list.elements++;
+    texture_list.max_elements = new_size / sizeof(char *);
+    return texture_list.elements-1
+    ;
+}
+
+void rmTexture (int index, unsigned int *texture_type, unsigned int *texture_id,
+                char **texture_path)
+{
+    if (index>=texture_list.elements)
+    {
+        fprintf(stderr, ERROR_MSG_LOG("indexing more than allowed", 
+                "index is larger than the number of elements in texture_list"));
+    }
+    if (index<0)
+        index = texture_list.elements + index +1;
+
+    if (texture_type)
+        *texture_type = texture_list.texture_type[index];
+    if (texture_id)
+        *texture_id   = texture_list.texture_id[index];
+    if (texture_path)
+    {
+        char *tpath = calloc(strlen(texture_list.texture_path[index]+1), 1);
+        strcpy(tpath, texture_list.texture_path[index]);
+        *texture_path = tpath;
+    }
+
+    texture_list.texture_type[index] = 0;                                       // set to 0
+    texture_list.texture_id[index]   = 0;
+    free(texture_list.texture_path[index]);
+    texture_list.texture_path[index] = NULL;
+}
+
+int getTexture(int *index, unsigned int *texture_type, 
+                        unsigned int *texture_id, char **texture_path)
+{
+    int i=0;
+    if (index != NULL)
+    {
+        if (*index>=0)
+        {
+            i = *index;
+            goto set_values;
+        }
+        else if (*index<0)
+        {
+            i = texture_list.elements + *index +1;
+            goto set_values;
+        }
+    }
+    for (i=0; i<texture_list.elements; i++)
+    {
+        if (texture_list.texture_type[i] == *texture_type && 
+            texture_list.texture_id[i]   == *texture_id)
+        {
+            if (!strncmp(texture_list.texture_path[i], *texture_path, PATH_MAX))
+                goto set_values;
+        }
+    }
+    return -1;
+    
+    set_values:
+        *index = i;
+        *texture_type = texture_list.texture_type[i];
+        *texture_id   = texture_list.texture_id[i];
+
+        int texture_path_len = strlen(texture_list.texture_path[i]);            // FIXME decide if want to change with 
+        texture_list.texture_path[i] =
+            realloc(*texture_path, texture_path_len);                               // fixed size strings
+        strncpy(*texture_path, texture_list.texture_path[i], PATH_MAX);
+        return i;
+
+}
+
+void printTextureList()
+{
+    printf("\x1b[0;1mTEXTURE LIST\x1b[0;0m\n"
+           "elements: %d\tmax_elements: %d\n"
+           "┌──────────────┬────────────┬──────────────┐\n"
+           "│ texture type │ texture id │ texture path │\n"
+           "├──────────────┼────────────┼──────────────┤\n",
+           texture_list.elements, texture_list.max_elements);
+
+    char type[20], id[20];
+    
+    for (int i=0; i<texture_list.elements; i++)
+    {
+        switch (texture_list.texture_type[i])
+        {
+            case none:
+                strcpy(type, "none");
+                break;
+            case diffuse:
+                strcpy(type, "diffuse");
+                break;
+            case specular:
+                strcpy(type, "specular");
+                break;
+            case ambient:
+                strcpy(type, "ambient");
+                break;
+            case emissive:
+                strcpy(type, "emissive");
+                break;
+            
+            default:
+                break;
+        }
+        sprintf(id, "%d", texture_list.texture_id[i]);
+        printf("│ %12s │ %10s │ %-12s │\n", type, id, texture_list.texture_path[i]);
+    }
+    printf("└──────────────┴────────────┴──────────────┘\n");
+}
+
+/******************************************************************************/
