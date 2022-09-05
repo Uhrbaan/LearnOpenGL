@@ -6,7 +6,7 @@ struct game_data state;
 void linkCamera2Uniform(struct camera *camera, unsigned int shader_program);
 void updateCameraUniform(struct camera camera, unsigned int shader_program);
 
-void initApplicationGlobalState(int win_w, int win_h, char *title)
+void initGLnGLFW(int win_w, int win_h, char *title)
 {
     // window
     void * result_fn = NULL;
@@ -96,7 +96,7 @@ int main_loop(unsigned int shader_program, struct model model)
         glm_vec3_copy(state.camera.pos, spot_light[0].position);
         glm_vec3_copy(state.camera.z, spot_light[0].direction);
         // glm_vec3_negate(spot_light[0].direction);
-        updatespotLight(0);
+        updatespotLight(0, shader_program);
 
         glfwSwapBuffers(state.window.glfw_window);
 
@@ -140,34 +140,16 @@ void generateVAO(struct mesh *mesh)
     mesh->ebo = ebo;
 }
 
-// drawing
 void drawMesh(struct mesh m, unsigned int shader_program)
 {
-    int diffuse_n=0, specular_n=0, n=0;
-    char uniform_name[100] = {0};
-    char base[20] = "material";
-    char type[20] = {0};
-
-    for (int i=0; i<m.n_text; i++)
+    for (int i=0; i<SUPPORTED_TEXTURE_TYPES_N; i++)
     {
-        switch (m.textures[i]->type)
-        {
-            case diffuse:
-                // n = diffuse_n++;
-                strncpy(type, "diffuse", 20-1);
-                break;
-            case specular:
-                // n = specular_n++;
-                strncpy(type, "specular", 20-1);
-            case emissive:
-                strncpy(type, "emisive", 20-1);
-            default:
-                break;
-        }
-        snprintf(uniform_name, 100-1, "%s.%s", base, type);
-        useTexture(i, uniform_name, shader_program, m.textures[i]->gl_id);
+        glActiveTexture(GL_TEXTURE0 + i);
+        glUseProgram(shader_program);
+        if (m.material->texture_id[i])
+            glUniform1i(m.material->texture_uniform[i], i); // link to n-th sampler
+        glBindTexture(GL_TEXTURE_2D, m.material->texture_id[i]);
     }
-
     drawElements(shader_program, m.vao, m.n_indi);
 }
 

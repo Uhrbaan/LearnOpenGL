@@ -21,7 +21,7 @@ struct game_data
 extern struct game_data state;                                                  // dont forget to declare variable 
                                                                                 // in c file and then use 'extern'
 // initialises the window and camera
-void initApplicationGlobalState(int win_w, int win_h, char *title);
+void initGLnGLFW(int win_w, int win_h, char *title);
 void initCamera(bool ortho_projection, vec3 cam_pos, 
                 vec3 cam_x, vec3 cam_y, vec3 cam_z,
                 float fov, float yaw, float pitch, float roll,

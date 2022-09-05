@@ -53,20 +53,21 @@ extern unsigned int spot_light_n;
 extern struct spot_light *spot_light;
 
 void initShading            (unsigned int shader_program);
-void updateDirectionalLight (unsigned int index);
-void updatePointLight       (unsigned int index);
-void updatespotLight        (unsigned int index);
+void updateDirectionalLight (unsigned int index, unsigned int shader_program);
+void updatePointLight       (unsigned int index, unsigned int shader_program);
+void updatespotLight        (unsigned int index, unsigned int shader_program);
 
-#define SUPPORTED_TEXTURE_TYPES_N 5
+#define SUPPORTED_TEXTURE_TYPES_N 5 // max 20
 struct material                                                                 // material
 {
-    unsigned int none, diffuse, specular, ambient, emissive;                    // TODO find bette solution to handle 
-    float shininess, strenght;                                                  // large amounts of texture types + 
-};                                                                              // multiple textures per type
+    unsigned int texture_id[SUPPORTED_TEXTURE_TYPES_N],                         // diffuse, specular, ambient, emissive;
+                 texture_uniform[SUPPORTED_TEXTURE_TYPES_N];
+    float shininess, strenght;
+};
 extern struct material material; // does it have any use ?
 struct material_list
 {
-    unsigned int elements, max_elements;
+    unsigned int elements, max_elements, shader_program;
     struct material *material;
 };
 extern struct material_list material_list;

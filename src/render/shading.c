@@ -29,17 +29,14 @@ static struct
                  constant, linear, quadratic, cutoff, outer_cutoff;
 } *spot_light_uniform = NULL;
 
-static unsigned int LIGHT_SHADER_PROGRAM;
-
 /******************************** initShading *********************************/
 
-void initShading(unsigned int shader_program)                                   // <initShading>
+void initShading(unsigned int shader_program)
 {
     int i; char uniform_name[100];
-    LIGHT_SHADER_PROGRAM = shader_program;
     // find the number of each type of light
     material_uniform = glGetUniformLocation(shader_program, "material");
-
+    material_list.shader_program = shader_program;
 
     glGetUniformuiv(                                                            // directional light
         shader_program, 
@@ -121,34 +118,34 @@ void initShading(unsigned int shader_program)                                   
 
     for (i=0; i<spot_light_n; i++)
     {
-        snprintf(uniform_name, 100-1, "spot_light[%d].position", i);
+        snprintf(uniform_name, 100, "spot_light[%d].position", i);
         spot_light_uniform[i].position = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].direction", i);
+        snprintf(uniform_name, 100, "spot_light[%d].direction", i);
         spot_light_uniform[i].direction = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].ambient", i);
+        snprintf(uniform_name, 100, "spot_light[%d].ambient", i);
         spot_light_uniform[i].ambient = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].diffuse", i);
+        snprintf(uniform_name, 100, "spot_light[%d].diffuse", i);
         spot_light_uniform[i].diffuse = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].specular", i);
+        snprintf(uniform_name, 100, "spot_light[%d].specular", i);
         spot_light_uniform[i].specular = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].constant", i);
+        snprintf(uniform_name, 100, "spot_light[%d].constant", i);
         spot_light_uniform[i].constant = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].linear", i);
+        snprintf(uniform_name, 100, "spot_light[%d].linear", i);
         spot_light_uniform[i].linear = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].quadratic", i);
+        snprintf(uniform_name, 100, "spot_light[%d].quadratic", i);
         spot_light_uniform[i].quadratic = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].cutoff", i);
+        snprintf(uniform_name, 100, "spot_light[%d].cutoff", i);
         spot_light_uniform[i].cutoff = 
             glGetUniformLocation(shader_program, uniform_name);
-        snprintf(uniform_name, 100-1, "spot_light[%d].outer_cutoff", i);
+        snprintf(uniform_name, 100, "spot_light[%d].outer_cutoff", i);
         spot_light_uniform[i].outer_cutoff = 
             glGetUniformLocation(shader_program, uniform_name);
     }
@@ -160,9 +157,9 @@ void initShading(unsigned int shader_program)                                   
 
 /******************************* update Lights ********************************/
 
-void updateDirectionalLight(unsigned int index)
+void updateDirectionalLight(unsigned int index, unsigned int shader_program)
 {
-    glUseProgram(LIGHT_SHADER_PROGRAM);
+    glUseProgram(shader_program);
 
     glUniform3fv(directional_light_uniform[index].direction, 1, 
                  directional_light[index].direction);
@@ -174,9 +171,9 @@ void updateDirectionalLight(unsigned int index)
                  directional_light[index].specular);
 }
 
-void updatePointLight(unsigned int index)
+void updatePointLight(unsigned int index, unsigned int shader_program)
 {
-    glUseProgram(LIGHT_SHADER_PROGRAM);
+    glUseProgram(shader_program);
 
     glUniform3fv(point_light_uniform[index].position, 1, 
                  point_light[index].position);
@@ -193,9 +190,9 @@ void updatePointLight(unsigned int index)
     glUniform1f (point_light_uniform[index].quadratic,
                  point_light[index].quadratic);
 }
-void updatespotLight(unsigned int index)
+void updatespotLight(unsigned int index, unsigned int shader_program)
 {
-    glUseProgram(LIGHT_SHADER_PROGRAM);
+    glUseProgram(shader_program);
 
     glUniform3fv(spot_light_uniform[index].position, 1, 
                  spot_light[index].position);
@@ -299,10 +296,10 @@ void printMaterialList()
     for (int i=0; i<material_list.elements; i++)
     {
         printf("│ %7d │ %8d │ %7d │ %8d │ %9.2f │ %8.2f │\n",
-               material_list.material[i].diffuse, 
-               material_list.material[i].specular,
-               material_list.material[i].ambient,
-               material_list.material[i].emissive,
+               material_list.material[i].texture_id[1], 
+               material_list.material[i].texture_id[2],
+               material_list.material[i].texture_id[3],
+               material_list.material[i].texture_id[4],
                material_list.material[i].shininess,
                material_list.material[i].strenght);
     }
@@ -404,24 +401,28 @@ int getTexture(int *index, unsigned int *texture_type,
     }
     for (i=0; i<texture_list.elements; i++)
     {
-        if (texture_list.texture_type[i] == *texture_type && 
-            texture_list.texture_id[i]   == *texture_id)
+        if (texture_id!=NULL && *texture_id)
         {
-            if (!strncmp(texture_list.texture_path[i], *texture_path, PATH_MAX))
+            if (*texture_id==texture_list.texture_id[i])
                 goto set_values;
         }
+        else if (texture_path!=NULL && *texture_path[0])
+            if (!strncmp(texture_list.texture_path[i], *texture_path, PATH_MAX))
+                goto set_values;                
     }
     return -1;
     
     set_values:
-        *index = i;
-        *texture_type = texture_list.texture_type[i];
-        *texture_id   = texture_list.texture_id[i];
-
-        int texture_path_len = strlen(texture_list.texture_path[i]);            // FIXME decide if want to change with 
-        texture_list.texture_path[i] =
-            realloc(*texture_path, texture_path_len);                               // fixed size strings
-        strncpy(*texture_path, texture_list.texture_path[i], PATH_MAX);
+        if (index!=NULL)        *index = i;
+        if (texture_type!=NULL) *texture_type = texture_list.texture_type[i];
+        if (texture_id!=NULL)   *texture_id   = texture_list.texture_id[i];
+        if (texture_path!=NULL && !*texture_path[0])
+        {
+            int texture_path_len = strlen(texture_list.texture_path[i]);
+            texture_list.texture_path[i] =
+                realloc(*texture_path, texture_path_len);
+            strncpy(*texture_path, texture_list.texture_path[i], PATH_MAX);
+        }
         return i;
 
 }

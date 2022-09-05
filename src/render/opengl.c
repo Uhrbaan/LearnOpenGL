@@ -13,8 +13,6 @@ MessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity,
         type, severity, message );
 }
 
-static unsigned int current_gl_texture=0, diffuse_n=1, specular_n=1;
-
 int initGlad(int x, int y, int w, int h, void* fn_proc_adress)
 {
     if (!gladLoadGLLoader((GLADloadproc) fn_proc_adress))
@@ -71,6 +69,14 @@ unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
     glDeleteShader(vs);
     glDeleteShader(fs);
     return program;
+}
+
+inline unsigned int loadShaderProgram(const char *vs_path, const char *fs_path)
+{
+    return createShaderProgram(
+        loadShader(vs_path, GL_VERTEX_SHADER),
+        loadShader(fs_path, GL_FRAGMENT_SHADER)
+    );
 }
 
 #include <stdbool.h>

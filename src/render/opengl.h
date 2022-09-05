@@ -35,12 +35,11 @@ struct datawloc
 };
 
 int initGlad(int x, int y, int w, int h, void* fn_proc_adress);
-// do error checking
-unsigned int loadShader(const char *path, unsigned int type);
-unsigned int createShaderProgram(unsigned int vs, unsigned int fs);
-unsigned int loadGLTexture(const char *path);
-void useTexture(int index, char *uniform_name, unsigned int shader_program, 
-                unsigned int gl_id);
+
+extern unsigned int loadShaderProgram(const char *vs_path, const char *fs_path);
+
+unsigned int loadGLTexture(const char *path); 
+
 void drawElements(unsigned int shader_program, unsigned int vao, int n_indices);
 /**
  * @brief generate vao, vbo & ebo from data

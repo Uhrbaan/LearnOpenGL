@@ -8,8 +8,8 @@ uniform vec3 cam_pos;
 
 struct Material
 {
-    sampler2D diffuse, specular, emissive;
-    float shininess;
+    sampler2D textures[20]; // holder for all the texture types
+    float shininess, strenght;
 }; 
 uniform Material material;
 
@@ -51,18 +51,18 @@ vec3 directionalLight(Directional_light light, vec3 normal, vec3 view_direction)
 
     ambient =                                                                   // ambient
         light.ambient *
-        texture(material.diffuse, texture_coo).rgb;
+        texture(material.textures[1], texture_coo).rgb;
 
     diffuse =                                                                   // diffuse
         light.diffuse *
         max(dot(normal, light_dir), 0.0) *
-        texture(material.diffuse, texture_coo).rgb;
+        texture(material.textures[1], texture_coo).rgb;
 
     vec3 reflect_direction = reflect(-light_dir, normal);
     specular =                                                                  // specular
         light.specular *
         pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
-        texture(material.specular, texture_coo).rgb;
+        texture(material.textures[2], texture_coo).rgb;
 
     return (ambient + diffuse + specular);
 }
@@ -79,20 +79,20 @@ vec3 pointLight(Point_light light, vec3 normal, vec3 frag_pos, vec3 view_directi
 
     ambient =                                                                   // ambient
         light.ambient *
-        texture(material.diffuse, texture_coo).rgb *
+        texture(material.textures[1], texture_coo).rgb *
         attenuation;
 
     diffuse =                                                                   // diffuse
         light.diffuse *
         max(dot(normal, light_dir), 0.0) *
-        texture(material.diffuse, texture_coo).rgb *
+        texture(material.textures[1], texture_coo).rgb *
         attenuation;
 
     vec3 reflect_direction = reflect(-light_dir, normal);
     specular =                                                                  // specular
         light.specular *
         pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
-        texture(material.specular, texture_coo).rgb *
+        texture(material.textures[2], texture_coo).rgb *
         attenuation;
 
     return (ambient + diffuse + specular);
@@ -115,13 +115,13 @@ vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_directio
 
     ambient =                                                                   // ambient
         light.ambient *
-        texture(material.diffuse, texture_coo).rgb *
+        texture(material.textures[1], texture_coo).rgb *
         attenuation;
 
     diffuse =                                                                   // diffuse
         light.diffuse *
         max(dot(normal, light_dir), 0.0) *
-        texture(material.diffuse, texture_coo).rgb *
+        texture(material.textures[1], texture_coo).rgb *
         attenuation *
         intensity;
 
@@ -129,7 +129,7 @@ vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_directio
     specular =                                                                  // specular
         light.specular *
         pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
-        texture(material.specular, texture_coo).rgb *
+        texture(material.textures[2], texture_coo).rgb *
         attenuation *
         intensity;
 
