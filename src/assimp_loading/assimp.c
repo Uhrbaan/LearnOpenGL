@@ -72,7 +72,6 @@ struct material *extractMaterial(const struct aiMesh *mesh,
             if (!texture_list.texture_id[texture_index])                        // set glid if texture didn't exist
                 texture_list.texture_id[texture_index] = 
                     loadGLTexture(texture_path);
-            printTextureList();
 
             // uniform location
             char uniform_name[100]={0};
@@ -92,6 +91,5 @@ struct material *extractMaterial(const struct aiMesh *mesh,
         (float*)&material.strenght, &max);
 
     int material_index = addMaterial(material);
-    printMaterialList();
     return &material_list.material[material_index];
 }

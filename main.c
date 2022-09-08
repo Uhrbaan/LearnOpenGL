@@ -5,17 +5,19 @@
 int main(int argc, const char *argv[])
 {
     printf("hello world!\n");
-    initGLnGLFW( 800, 600, "testing..." );
+    initGlobalState( 800, 600, "testing..." );
     unsigned int sp = 0;
-    sp = loadShaderProgram("res/glsl/vs.vs", "res/glsl/fs.fs");
+    sp = loadShaderProgram("./res/glsl/vs.vs", "./res/glsl/light.fs");
     initShading(sp);
-    initCamera(false, (vec3){ 0.2f,  1.8f,  5.3f}, 
-                      (vec3){ 1.0f,  0.0f,  0.0f}, 
-                      (vec3){ 0.0f,  1.0f,  0.0f}, 
-                      (vec3){ 0.01f, 0.2f, 1.0f},
-               45.0f, 25.f, 80.f, 1.f, sp);
+    state.camera = 
+        initCamera(false, 800, 600,
+                   (vec3){ 0.2f,  1.8f,  5.3f}, 
+                   (vec3){ 1.0f,  0.0f,  0.0f}, 
+                   (vec3){ 0.0f,  1.0f,  0.0f}, 
+                   (vec3){ 0.01f, 0.2f,  1.0f},
+                   glm_rad(45.0f), glm_rad(25.f), glm_rad(80.f), glm_rad(1.f), 
+                   sp);
     
-
     struct model m = {0};
     m = loadModel("res/models/backpack/backpack.obj");
 
@@ -57,3 +59,5 @@ int main(int argc, const char *argv[])
 
     return 0; 
 }
+
+// TODO make code prettier <3

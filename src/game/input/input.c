@@ -19,10 +19,10 @@ void mouse_callback(GLFWwindow* window, double x, double y)
 
     // to prevent the lookat function to flip the camera, we need to prevent the 
     // user to have an angle greater than 89°
-    if(state.camera.pitch > 89.0f)
-        state.camera.pitch = 89.0f;
-    else if (state.camera.pitch < -89.0f)
-        state.camera.pitch = -89.0f;
+    if(state.camera.pitch > glm_rad(89.0f))
+        state.camera.pitch = glm_rad(89.0f);
+    else if (state.camera.pitch < glm_rad(-89.0f))
+        state.camera.pitch = glm_rad(-89.0f);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -126,15 +126,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
-        state.camera.fov -= (float)yoffset*.5f;
-        if (state.camera.fov < 1.0f)
-            state.camera.fov = 1.0f;
-        else if (state.camera.fov > 80.0f)
-            state.camera.fov = 80.0f;
+        state.camera.fov -= (float)yoffset*.05f;
+        if (state.camera.fov < glm_rad(1.0f))
+            state.camera.fov = glm_rad(1.0f);
+        else if (state.camera.fov > glm_rad(180.0f))
+            state.camera.fov = glm_rad(180.0f);
     }
     else
     {
-        speed += yoffset*.2;
+        speed += yoffset*2;
     }
 }
 

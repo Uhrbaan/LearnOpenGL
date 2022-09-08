@@ -34,3 +34,9 @@ struct model loadModel(const char *path)
     }
     return model;
 }
+
+void drawModel(struct model m, unsigned int shader_program)
+{
+    for (int i=0; i<m.n_meshes; i++)
+        drawMesh(m.meshes[i], shader_program);
+}

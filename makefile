@@ -1,8 +1,7 @@
 PROGRAM=bin/main
-CC=clang
+CC=gcc
 
 CFLAGS= -g -Wall
-CFLAGS_RELEASE = -O2
 # all -L libraries flags
 LDFLAGS = 
 # all -l libraries
@@ -15,9 +14,6 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS) main.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(LDLIBS) $(OBJS) main.c -o $(PROGRAM)
-
-release: $(OBJS) main.c
-	$(CC) $(CFLAGS_RELEASE) $(LDFLAGS) $(LDLIBS) $(OBJS) main.c -o $(PROGRAM)
 
 obj/%.o: src/%.c
 	@mkdir -p $(dir $@)

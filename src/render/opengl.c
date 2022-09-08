@@ -13,7 +13,7 @@ MessageCallback( GLenum source, GLenum type, GLuint id, GLenum severity,
         type, severity, message );
 }
 
-int initGlad(int x, int y, int w, int h, void* fn_proc_adress)
+int initOpenGL(int x, int y, int w, int h, void* fn_proc_adress)
 {
     if (!gladLoadGLLoader((GLADloadproc) fn_proc_adress))
     {
@@ -156,32 +156,39 @@ void drawElements(unsigned int shader_program, unsigned int vao, int n_indices)
     glActiveTexture(GL_TEXTURE0);
 }
 
-unsigned int genVao(unsigned int *vbo, unsigned int *ebo, 
-                    void *vertices, size_t vert_sz, 
-                    void *indices, size_t indi_sz, size_t stride)
+unsigned int generateVao(float        *vertices, int vertices_n,
+                         unsigned int *indices,  int indices_n,
+                         unsigned int *vbo_out,  unsigned int *ebo_out)
 {
-    unsigned int _vao, _vbo, _ebo;
-    glGenVertexArrays(1, &_vao);
-    glGenBuffers(1, &_vbo);
-    glGenBuffers(1, &_ebo);
+    unsigned int vao, vbo, ebo;
+    size_t vert_sz, indi_sz, stride_sz, pos_off, norm_off, uv_off;
+    vert_sz   = sizeof(float) * vertices_n;
+    indi_sz   = sizeof(int)   * indices_n;
+    stride_sz = sizeof(float) * (3 + 3 + 2);                                    // 3pos, 3norm, 2uv
+    pos_off   = sizeof(float) * 0;
+    norm_off  = sizeof(float) * 3;
+    uv_off    = sizeof(float) * (3 + 3);
 
-    glBindVertexArray(_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vert_sz, vertices, GL_STATIC_DRAW);
 
-    glBindVertexArray(_ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indi_sz, indices, GL_STATIC_DRAW);
     
-    size_t off_norm = 3*sizeof(float), off_uv= 6*sizeof(float);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);          // location
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)off_norm);          // normals
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)off_uv);            // texture coordinates
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)pos_off); // vertex pos
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)norm_off);// normals
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride_sz, (void*)uv_off);  // uv mapping
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     glBindVertexArray(0); // unbind current vao
-    *vbo = _vbo;
-    *ebo = _ebo;
-    return _vao;
+
+    if (vbo_out) *vbo_out = vbo;
+    if (ebo_out) *ebo_out = ebo;
+    return vao;
 }

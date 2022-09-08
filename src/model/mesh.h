@@ -20,5 +20,6 @@ struct mesh
 // dont forget to generate vao afterwards
 struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene, 
                          const char *directory);
+void drawMesh(struct mesh m, unsigned int shader_program);
 
 #endif

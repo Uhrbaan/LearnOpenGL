@@ -4,7 +4,7 @@ out vec4 FragColor;
 in vec3 frag_pos;
 in vec3 Normal;
 in vec2 texture_coo;
-uniform vec3 cam_pos;
+uniform vec3 camera_position;
 
 struct Material
 {
@@ -139,7 +139,7 @@ vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_directio
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 view_direction = normalize(cam_pos-frag_pos);
+    vec3 view_direction = normalize(camera_position-frag_pos);
 
     vec3 result = vec3(0.0);
     // directional lighting

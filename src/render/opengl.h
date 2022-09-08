@@ -34,27 +34,29 @@ struct datawloc
     unsigned int uniform_location, shader_program;
 };
 
-int initGlad(int x, int y, int w, int h, void* fn_proc_adress);
+int initOpenGL(int x, int y, int w, int h, void* getProcAdress_fn);
 
 extern unsigned int loadShaderProgram(const char *vs_path, const char *fs_path);
+unsigned int createShaderProgram(unsigned int vs, unsigned int fs);
+unsigned int loadShader(const char *path, unsigned int type);
 
 unsigned int loadGLTexture(const char *path); 
 
 void drawElements(unsigned int shader_program, unsigned int vao, int n_indices);
 /**
- * @brief generate vao, vbo & ebo from data
+ * @brief generate a vertex array object
  * 
- * @param vbo generate vbo (optional)
- * @param ebo generate ebo (optional)
- * @param vertices data of the pos | norm | uv
- * @param vert_sz size of the vertices
- * @param indices data of the indices
- * @param indi_sz size of indices
- * @param stride stride
- * @return generated vao 
+ * @param vertices array of floats. the layout should be 3 floats for position, 
+ *                 3 floats for the normal, 2 floats for the uv mapping
+ * @param vetices_n total number of vertices
+ * @param indices array of unsigned integers
+ * @param indices_n number of indices
+ * @param vbo_out reference to the vertex buffer object
+ * @param ebo_out reference to the element buffer object
+ * @return unsigned int 
  */
-unsigned int genVao(unsigned int *vbo, unsigned int *ebo, 
-                    void *vertices, size_t vert_sz, 
-                    void *indices, size_t indi_sz, size_t stride);
+unsigned int generateVao(float        *vertices, int vertices_n,
+                         unsigned int *indices,  int indices_n,
+                         unsigned int *vbo_out, unsigned int *ebo_out);
 
 #endif

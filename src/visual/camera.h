@@ -10,10 +10,12 @@ struct camera
     vec3 pos, x, y, z;
     float fov, yaw, pitch, roll;
     mat4 view, projection, model;
-    struct {
-        unsigned int view, projection, model;
-    } uni_loc;
 };
-int updateCamera(struct camera *camera);
+
+struct camera initCamera(bool ortho_projection, int window_w, int window_h,
+                         vec3 cam_pos, vec3 cam_x, vec3 cam_y, vec3 cam_z,
+                         float fov, float yaw, float pitch, float roll,
+                         unsigned int shader_program);
+void updateCamera(struct camera *camera, unsigned int shader_program);
 
 #endif
