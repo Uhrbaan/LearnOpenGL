@@ -43,13 +43,13 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
 {
     if (!memcmp(&last_cam, camera, sizeof(struct camera))) return;
 
-    // (*camera).z[0] = cos((*camera).yaw) * cos((*camera).pitch);
-    // (*camera).z[1] = sin((*camera).pitch);
-    // (*camera).z[2] = sin((*camera).yaw) * cos((*camera).pitch);
-    float ry = glm_rad((*camera).yaw), rp = glm_rad((*camera).pitch);
-    (*camera).z[0] = cos(ry) * cos(rp);
-    (*camera).z[1] = sin(rp);
-    (*camera).z[2] = sin(ry) * cos(rp);
+    (*camera).z[0] = cos((*camera).yaw) * cos((*camera).pitch);
+    (*camera).z[1] = sin((*camera).pitch);
+    (*camera).z[2] = sin((*camera).yaw) * cos((*camera).pitch);
+    // float ry = glm_rad((*camera).yaw), rp = glm_rad((*camera).pitch);
+    // (*camera).z[0] = cos(ry) * cos(rp);
+    // (*camera).z[1] = sin(rp);
+    // (*camera).z[2] = sin(ry) * cos(rp);
 
     vec3 sum; 
     glm_vec3_add ((*camera).pos, (*camera).z, sum);
