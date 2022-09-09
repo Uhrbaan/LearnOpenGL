@@ -16,12 +16,12 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
                          const char *directory)
 {
     struct mesh m = {0};
-    m.n_vert   = extractVertices(mesh, (float**)&m.vertices);
-    m.n_indi   = extractIndices (mesh, (unsigned int**)&m.indices);
-    m.material = extractMaterial(mesh, scene, directory);
-    m.vao      = generateVao    ((float*)m.vertices,       m.n_vert, 
-                                 (unsigned int*)m.indices, m.n_indi, 
-                                 &m.vbo, &m.ebo);
+    m.n_vert   = extractVertices (mesh, (float**)&m.vertices);
+    m.n_indi   = extractIndices  (mesh, (unsigned int**)&m.indices);
+    m.material = extractMaterial (mesh, scene, directory);
+    m.vao      = generateVao     ((float*)m.vertices,       m.n_vert, 
+                                  (unsigned int*)m.indices, m.n_indi, 
+                                  &m.vbo, &m.ebo);
     return m;
 }
 

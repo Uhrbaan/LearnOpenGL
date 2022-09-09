@@ -21,10 +21,10 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
     struct camera camera = {0};
     camera.ortho  = ortho_projection;
     camera.ratio  = (float)window_w/(float)window_h;
-    memcpy   (camera.pos, cam_pos, sizeof(vec3));
-    memcpy   (camera.x,   cam_x, sizeof(vec3));
-    memcpy   (camera.y,   cam_y, sizeof(vec3));
-    memcpy   (camera.z,   cam_z, sizeof(vec3));
+    glm_vec3_copy   (camera.pos, cam_pos);
+    glm_vec3_copy   (camera.x,   cam_x);
+    glm_vec3_copy   (camera.y,   cam_y);
+    glm_vec3_copy   (camera.z,   cam_z);
     camera.fov    = fov;
     camera.yaw    = yaw; 
     camera.pitch  = pitch;
@@ -38,7 +38,6 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
     return camera;
 }
 
-
 void updateCamera(struct camera *camera, unsigned int shader_program)
 {
     if (!memcmp(&last_cam, camera, sizeof(struct camera))) return;
@@ -51,7 +50,7 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
     // (*camera).z[1] = sin(rp);
     // (*camera).z[2] = sin(ry) * cos(rp);
 
-    vec3 sum; 
+    vec3 sum;
     glm_vec3_add ((*camera).pos, (*camera).z, sum);
     glm_lookat   ((*camera).pos, sum, (*camera).y, (*camera).view);             // update view matrix
 
@@ -70,4 +69,43 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
     glUniform3fv      (camera_uniform.pos,        1,    cfp (*camera).pos);
 
     last_cam = *camera;
+}
+
+int updateCAMERA(struct camera *camera)
+{
+    int updates=0;
+    if (last_cam.yaw + last_cam.pitch !=
+            camera->yaw + camera->pitch ||
+        last_cam.pos[0] + last_cam.pos[1] + last_cam.pos[2] !=
+            camera->pos[0] + camera->pos[1] + camera->pos[2]   )
+    {
+        // update view matrix
+        camera->z[0] = cos(camera->yaw) * cos(camera->pitch);
+        camera->z[1] = sin(camera->pitch);
+        camera->z[2] = sin(camera->yaw) * cos(camera->pitch);
+
+        vec3 sum; glm_vec3_add(camera->pos, camera->z, sum);
+        glm_lookat(camera->pos, sum, camera->y, camera->view);
+        updates+=1;
+    }
+
+    if (last_cam.ortho != camera->ortho ||
+        last_cam.fov != camera->fov     ||
+        last_cam.ratio != camera->ratio )
+    {
+        // update projection matrix
+        if (camera->ortho)
+            // TODO change to make it variable or use constants
+            glm_ortho(-2.0f, 2.0f, -2.0f, 2.0f, NEAR_PLANE, FAR_PLANE,
+                camera->projection);
+        else
+            glm_perspective(camera->fov, camera->ratio, NEAR_PLANE, FAR_PLANE,
+                camera->projection);
+        updates+=2;
+    }
+
+    if (updates)
+        last_cam = *camera;
+
+    return updates;
 }

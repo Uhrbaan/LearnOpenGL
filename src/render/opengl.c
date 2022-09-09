@@ -180,9 +180,9 @@ unsigned int generateVao(float        *vertices, int vertices_n,
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indi_sz, indices, GL_STATIC_DRAW);
     
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)pos_off); // vertex pos
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)norm_off);// normals
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride_sz, (void*)uv_off);  // uv mapping
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)0); // vertex pos
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride_sz, (void*)3);// normals
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride_sz, (void*)6);  // uv mapping
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
