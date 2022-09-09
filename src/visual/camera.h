@@ -9,7 +9,7 @@ struct camera
     float ratio;
     vec3 pos, x, y, z;
     float fov, yaw, pitch, roll;
-    mat4 view, projection, model;
+    mat4 model, view, projection;
 };
 
 struct camera initCamera(bool ortho_projection, int window_w, int window_h,

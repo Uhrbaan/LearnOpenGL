@@ -21,14 +21,18 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
     struct camera camera = {0};
     camera.ortho  = ortho_projection;
     camera.ratio  = (float)window_w/(float)window_h;
-    glm_vec3_copy   (camera.pos, cam_pos);
-    glm_vec3_copy   (camera.x,   cam_x);
-    glm_vec3_copy   (camera.y,   cam_y);
-    glm_vec3_copy   (camera.z,   cam_z);
+    glm_vec3_copy   (cam_pos, camera.pos);
+    glm_vec3_copy   (cam_x,   camera.x);
+    glm_vec3_copy   (cam_y,   camera.y);
+    glm_vec3_copy   (cam_z,   camera.z);
     camera.fov    = fov;
     camera.yaw    = yaw; 
     camera.pitch  = pitch;
     camera.roll   = roll;
+
+    glm_mat4_identity(camera.model);
+    glm_mat4_identity(camera.view);
+    glm_mat4_identity(camera.projection);
 
     camera_uniform.model      = glGetUniformLocation(shader_program, "model");
     camera_uniform.view       = glGetUniformLocation(shader_program, "view");
@@ -45,10 +49,6 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
     (*camera).z[0] = cos((*camera).yaw) * cos((*camera).pitch);
     (*camera).z[1] = sin((*camera).pitch);
     (*camera).z[2] = sin((*camera).yaw) * cos((*camera).pitch);
-    // float ry = glm_rad((*camera).yaw), rp = glm_rad((*camera).pitch);
-    // (*camera).z[0] = cos(ry) * cos(rp);
-    // (*camera).z[1] = sin(rp);
-    // (*camera).z[2] = sin(ry) * cos(rp);
 
     vec3 sum;
     glm_vec3_add ((*camera).pos, (*camera).z, sum);
@@ -58,7 +58,7 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
     ((*camera).ortho == true)
         ? glm_ortho       (-2.0f, 2.0f, -2.0f, 2.0f, NEAR_PLANE, FAR_PLANE, 
                            (*camera).projection)
-        : glm_perspective (glm_rad((*camera).fov), (*camera).ratio, NEAR_PLANE, FAR_PLANE, 
+        : glm_perspective ((*camera).fov, (*camera).ratio, NEAR_PLANE, FAR_PLANE, 
                            (*camera).projection);
 
     last_cam = *camera;
@@ -70,42 +70,4 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
 
     last_cam = *camera;
 }
-
-int updateCAMERA(struct camera *camera)
-{
-    int updates=0;
-    if (last_cam.yaw + last_cam.pitch !=
-            camera->yaw + camera->pitch ||
-        last_cam.pos[0] + last_cam.pos[1] + last_cam.pos[2] !=
-            camera->pos[0] + camera->pos[1] + camera->pos[2]   )
-    {
-        // update view matrix
-        camera->z[0] = cos(camera->yaw) * cos(camera->pitch);
-        camera->z[1] = sin(camera->pitch);
-        camera->z[2] = sin(camera->yaw) * cos(camera->pitch);
-
-        vec3 sum; glm_vec3_add(camera->pos, camera->z, sum);
-        glm_lookat(camera->pos, sum, camera->y, camera->view);
-        updates+=1;
-    }
-
-    if (last_cam.ortho != camera->ortho ||
-        last_cam.fov != camera->fov     ||
-        last_cam.ratio != camera->ratio )
-    {
-        // update projection matrix
-        if (camera->ortho)
-            // TODO change to make it variable or use constants
-            glm_ortho(-2.0f, 2.0f, -2.0f, 2.0f, NEAR_PLANE, FAR_PLANE,
-                camera->projection);
-        else
-            glm_perspective(camera->fov, camera->ratio, NEAR_PLANE, FAR_PLANE,
-                camera->projection);
-        updates+=2;
-    }
-
-    if (updates)
-        last_cam = *camera;
-
-    return updates;
-}
+// FIXME corrupted model showing -> indices ? vao ?

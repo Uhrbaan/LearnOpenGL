@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include "../global.h"
 
+void generateVAO(struct mesh *mesh);
+
 // dynamic array of textures
 struct
 {

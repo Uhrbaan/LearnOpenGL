@@ -25,6 +25,5 @@ void initGlobalState(int win_w, int win_h, char *title);
 int main_loop(unsigned int shader_program, struct model model);
 
 void drawModel(struct model m, unsigned int shader_program);
-void generateVAO(struct mesh *mesh);
 
 #endif
