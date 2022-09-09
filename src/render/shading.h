@@ -142,3 +142,5 @@ int getTexture(int *index, unsigned int *texture_type,
 void printTextureList();
 
 #endif
+
+// TODO include shininess & shininess strnegth into material

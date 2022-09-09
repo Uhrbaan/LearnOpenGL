@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <assimp/cimport.h>
 #include "src/global.h"
 
 int main(int argc, const char *argv[])
@@ -19,7 +19,8 @@ int main(int argc, const char *argv[])
                    sp);
     
     struct model m = {0};
-    m = loadModel("res/models/backpack/backpack.obj");
+    m = loadModel("res/models/backpack/backpack.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs);
 
 #include "src/render/shading.h"
     glm_vec3_copy((vec3){-0.2f, -1.0f, -0.3f}, directional_light[0].direction); // directional light source
@@ -59,5 +60,3 @@ int main(int argc, const char *argv[])
 
     return 0; 
 }
-
-// TODO make code prettier <3

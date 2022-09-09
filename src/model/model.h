@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assimp/cimport.h>
+#include <assimp/postprocess.h>
 #include "mesh.h"
+#include "assimp.h"
 
 struct model
 {
@@ -12,6 +14,6 @@ struct model
     char *directory;
 };
 
-struct model loadModel(const char *path);
+struct model loadModel(const char *path, int flags);
 
 #endif
