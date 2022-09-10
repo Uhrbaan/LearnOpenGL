@@ -4,7 +4,7 @@
 
 struct model loadModel(const char *path, int flags)
 {
-    struct aiScene *scene = loadScene(path, flags);                             // loading assimp scene
+    const struct aiScene *scene = loadScene(path, flags);                             // loading assimp scene
 
     if (!scene) return (struct model){0};
 
@@ -19,11 +19,17 @@ struct model loadModel(const char *path, int flags)
     model.n_meshes = scene->mNumMeshes;
     model.meshes = malloc(sizeof(struct mesh)*model.n_meshes);
 
+    struct mesh m;
     for (int i=0; i<model.n_meshes; i++)                                        // getting mesh information
     {
-        struct aiMesh *mesh = scene->mMeshes[i];
-        model.meshes[i] = generateMesh(mesh, scene, directory);
+        struct aiMesh *ai_mesh = scene->mMeshes[i];
+        model.meshes[i] = generateMesh(ai_mesh, scene, directory);
+        // model.meshes[i] = m;
     }
+
+    printMaterialList();
+    printTextureList();
+
     return model;
 }
 

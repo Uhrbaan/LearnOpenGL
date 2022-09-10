@@ -12,8 +12,7 @@ struct mesh
 {
     struct vertex  *vertices; int n_vert;
     unsigned int   *indices;  int n_indi;
-    struct texture **textures; int n_text; // textures live in another array    // TODO change to material
-    struct material *material;
+    struct material material;
     unsigned int vao, vbo, ebo;
 };
 

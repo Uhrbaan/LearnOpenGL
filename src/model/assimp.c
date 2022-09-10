@@ -57,15 +57,16 @@ unsigned int extractIndices(const struct aiMesh *mesh, unsigned int **indices)
 #include "../render/shading.h"
 #include "../render/opengl.h"
 // TODO support multiple textures per textures type
-struct material *extractMaterial(const struct aiMesh *mesh, 
+struct material extractMaterial(const struct aiMesh *mesh, 
                                  const struct aiScene *scene,
-                                 const char *directory)
+                                 const char *directory,
+                                 unsigned int *material_list_index)
 {
     if (!mesh->mMaterialIndex)
     {
         fprintf(stderr, TERM_COL_ERROR("error: ")
                         "no material for the mesh %p", mesh);
-        return NULL;
+        return (struct material){0};
     }
     // loading textures
     struct aiMaterial   *ai_mat = scene->mMaterials[mesh->mMaterialIndex];
@@ -104,8 +105,10 @@ struct material *extractMaterial(const struct aiMesh *mesh,
     aiGetMaterialFloatArray(ai_mat, AI_MATKEY_SHININESS_STRENGTH,
         (float*)&material.strenght, &max);
 
-    int material_index = addMaterial(material);
-    return &material_list.material[material_index];
+    unsigned int material_index = addMaterial(material);
+    if (material_list_index!=NULL) *material_list_index = material_index;
+    
+    return material;
 }
 
 // TODO handle object with less information

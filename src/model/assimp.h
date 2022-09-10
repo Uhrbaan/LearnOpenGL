@@ -16,8 +16,11 @@
 const struct aiScene *loadScene(const char *path, int flags);
 unsigned int extractVertices(const struct aiMesh *mesh, float **vertices);
 unsigned int extractIndices (const struct aiMesh *mesh, unsigned int **indices);
-struct material* extractMaterial(const struct aiMesh *mesh, 
+struct material extractMaterial(const struct aiMesh *mesh, 
                                  const struct aiScene *scene,
-                                 const char *directory);
+                                 const char *directory,
+                                 unsigned int *material_list_index);
 
 #endif
+
+// creating own models with this system: https://www.youtube.com/watch?v=4DQquG_o-Ac

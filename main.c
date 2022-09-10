@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <assimp/cimport.h>
 #include "src/global.h"
+#include "src/render/shading.h"
+#include "src/game/input/input.h"
+
+float last_frame = 0;
 
 int main(int argc, const char *argv[])
 {
     printf("hello world!\n");
     initGlobalState( 800, 600, "testing..." );
-    unsigned int sp = 0;
+    unsigned int sp = 0, outline = 0;
     sp = loadShaderProgram("./res/glsl/vs.vs", "./res/glsl/light.fs");
+    outline = loadShaderProgram("./res/glsl/vs.vs", "./res/glsl/outline.fs");
     initShading(sp);
     state.camera = 
         initCamera(false, 800, 600,
@@ -18,45 +23,67 @@ int main(int argc, const char *argv[])
                    glm_rad(45.0f), glm_rad(25.f), glm_rad(80.f), glm_rad(1.f), 
                    sp);
     
-    struct model m = {0};
-    m = loadModel("res/models/backpack/backpack.obj",
+    struct model model = {0};
+    model = loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene.obj",
                   aiProcess_Triangulate | aiProcess_FlipUVs);
 
-#include "src/render/shading.h"
     glm_vec3_copy((vec3){-0.2f, -1.0f, -0.3f}, directional_light[0].direction); // directional light source
-    glm_vec3_copy((vec3){ 0.2f,  0.2f,  0.2f}, directional_light[0].ambient);
-    glm_vec3_copy((vec3){ 1.0f,  0.0f,  0.0f}, directional_light[0].diffuse);
-    glm_vec3_copy((vec3){ 0.5f,  0.5f,  1.0f}, directional_light[0].specular);
+    glm_vec3_copy((vec3){ 0.8f,  0.8f,  0.8f}, directional_light[0].ambient);
+    glm_vec3_copy((vec3){ 1.0f,  1.0f,  1.0f}, directional_light[0].diffuse);
+    glm_vec3_copy((vec3){ 0.5f,  0.5f,  0.5f}, directional_light[0].specular);
     updateDirectionalLight(0, sp);
 
-    glm_vec3_copy((vec3){ 3.0f, 2.0f, 4.0f}, point_light[0].position);
-    glm_vec3_copy((vec3){ 0.0f, 0.0f, 0.0f}, point_light[0].ambient);
-    glm_vec3_copy((vec3){ 0.0f, 1.0f, 0.0f}, point_light[0].diffuse);
-    glm_vec3_copy((vec3){ 0.0f, 1.0f, 0.0f}, point_light[0].specular);
-    point_light[0].constant  = 1.0f;                                            // configurations for 32 units
-    point_light[0].linear    = 0.09f;
-    point_light[0].quadratic = 0.032f;
-    updatePointLight(0, sp);
+    glfwSetInputMode(state.window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    glm_vec3_copy((vec3){ -.2f, 3.5f, -.5f}, spot_light[0].position);
-    glm_vec3_copy((vec3){ 0.0f, 0.0f, -1.f}, spot_light[0].direction);
-    glm_vec3_copy((vec3){ 0.0f, 0.0f, 0.0f}, spot_light[0].ambient);
-    glm_vec3_copy((vec3){ 0.0f, 0.0f, 1.0f}, spot_light[0].diffuse);
-    glm_vec3_copy((vec3){ 0.0f, 0.0f, 1.0f}, spot_light[0].specular);
-    spot_light[0].constant  = 1.0f;
-    spot_light[0].linear    = 0.045f;
-    spot_light[0].quadratic = 0.0075f;
-    spot_light[0].cutoff    = cos(glm_rad(12.5f));
-    spot_light[0].outer_cutoff = cos(glm_rad(17.5f));
-    updatespotLight(0, sp);
+    while(!glfwWindowShouldClose(state.window.glfw_window))
+    {
+        float current_frame = glfwGetTime();
+        state.delta_time    = current_frame - last_frame;
+        last_frame          = current_frame;
 
-    // tmp set material.shininess to 32
-    unsigned int material_shininess_loc = 
-        glGetUniformLocation(sp, "material.shininess");
-    glUseProgram(sp);
-    glUniform1f(material_shininess_loc, 32.f);
+        glfwPollEvents();
+        movement(state.window.glfw_window);
 
-    main_loop(sp, m); 
+        updateCamera(&state.camera, sp);
+        glm_vec3_copy(state.camera.pos, spot_light[0].position);
+        glm_vec3_copy(state.camera.z,   spot_light[0].direction);
+        updatespotLight(0, sp);
 
+        glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);                     // clearing color & depth buffer
+
+        // stencil buffer test
+
+
+        glEnable(GL_DEPTH_TEST);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        drawModel(model, sp);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+        drawModel(model, outline);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+
+        glfwSwapBuffers(state.window.glfw_window);
+        msleep(16);
+    }
+    glfwTerminate();
     return 0; 
 }
+
+/**
+ * @brief notes
+ * 
+ * local space > world space > view space > clip space > screen space
+ * 
+ */
+
+// TODO handle multiple shaders
+// will be difficult *sad*
