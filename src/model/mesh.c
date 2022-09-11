@@ -13,7 +13,7 @@ struct
     struct texture *data;
 } loaded_textures={0};
 
-#include "../assimp_loading/assimp.h"
+#include "assimp.h"
 struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene, 
                          const char *directory)
 {
