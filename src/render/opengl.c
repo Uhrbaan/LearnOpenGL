@@ -49,6 +49,7 @@ unsigned int loadShader(const char *path, unsigned int type)
     return shader;
 }
 
+unsigned int SHADER_PROGRAM_N = 0;
 unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
 {
     unsigned int program=0; int linked=0;
@@ -68,6 +69,9 @@ unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
     // freeing shaders
     glDeleteShader(vs);
     glDeleteShader(fs);
+
+    SHADER_PROGRAM_N++;
+
     return program;
 }
 

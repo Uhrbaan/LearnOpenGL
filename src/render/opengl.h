@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <glad/glad.h>
 
+extern unsigned int SHADER_PROGRAM_N;
+
 enum texture_type { // based on assimps list
     none,
     diffuse,

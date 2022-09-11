@@ -62,10 +62,10 @@ void initShading(unsigned int shader_program)
         directional_light_uniform[i].specular = 
             glGetUniformLocation(shader_program, uniform_name);
     }
-
     directional_light = 
         calloc(directional_light_n, sizeof(struct directional_light));
     assert(directional_light);
+    for (i=0; i<directional_light_n; i++) updateDirectionalLight(i, shader_program);
 
 
     glGetUniformuiv(                                                            // point light
@@ -101,10 +101,10 @@ void initShading(unsigned int shader_program)
         point_light_uniform[i].quadratic = 
             glGetUniformLocation(shader_program, uniform_name);
     }
-
     point_light = 
         calloc(point_light_n, sizeof(struct point_light));
     assert(point_light);
+    for (i=0; i<directional_light_n; i++) updatePointLight(i, shader_program);
 
 
     glGetUniformuiv(                                                            // spot light
@@ -149,10 +149,10 @@ void initShading(unsigned int shader_program)
         spot_light_uniform[i].outer_cutoff = 
             glGetUniformLocation(shader_program, uniform_name);
     }
-
     spot_light = 
         calloc(spot_light_n, sizeof(struct spot_light));
     assert(spot_light);
+    for (i=0; i<directional_light_n; i++) updatespotLight(i, shader_program);
 }
 
 /******************************* update Lights ********************************/
