@@ -14,7 +14,8 @@ struct camera
 
 struct camera initCamera(bool ortho_projection, int window_w, int window_h,
                          vec3 cam_pos, vec3 cam_x, vec3 cam_y, vec3 cam_z,
-                         float fov, float yaw, float pitch, float roll);
+                         float fov, float yaw, float pitch, float roll,
+                         unsigned int sp);
 void updateCamera(struct camera *camera, unsigned int shader_program);
 
 #endif

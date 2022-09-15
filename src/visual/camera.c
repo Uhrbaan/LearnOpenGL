@@ -10,13 +10,14 @@ struct camera_uniform {unsigned int model, view, projection, pos;};
 
 static struct camera last_cam = {0};
 #define MAX_SHADER_PROGRAMS 100
-static struct camera_uniform camera_uniform[MAX_SHADER_PROGRAMS] = {0};
+static struct camera_uniform camera_uniform = {0};
 
 const float NEAR_PLANE = 0.1f, FAR_PLANE = 100.0f;
 
 struct camera initCamera(bool ortho_projection, int window_w, int window_h,
                          vec3 cam_pos, vec3 cam_x, vec3 cam_y, vec3 cam_z,
-                         float fov, float yaw, float pitch, float roll)
+                         float fov, float yaw, float pitch, float roll, 
+                         unsigned int sp)
 {
     struct camera camera = {0};
     camera.ortho  = ortho_projection;
@@ -34,13 +35,10 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
     glm_mat4_identity(camera.view);
     glm_mat4_identity(camera.projection);
 
-    for (int i=1; i<MAX_SHADER_PROGRAMS && i<=SHADER_PROGRAM_N; i++)
-    {
-        camera_uniform[i-1].model      = glGetUniformLocation(i*3, "model");
-        camera_uniform[i-1].view       = glGetUniformLocation(i*3, "view");
-        camera_uniform[i-1].projection = glGetUniformLocation(i*3, "projection");
-        camera_uniform[i-1].pos        = glGetUniformLocation(i*3, "camera_position");
-    }
+    camera_uniform.model      = glGetUniformLocation(sp, "model");
+    camera_uniform.view       = glGetUniformLocation(sp, "view");
+    camera_uniform.projection = glGetUniformLocation(sp, "projection");
+    camera_uniform.pos        = glGetUniformLocation(sp, "camera_position");
 
     return camera;
 }
@@ -66,10 +64,10 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
 
     last_cam = *camera;
     glUseProgram(shader_program);
-    glUniformMatrix4fv(camera_uniform[/* shader_program/3-1 */0].model,      1, 0, cfp (*camera).model);
-    glUniformMatrix4fv(camera_uniform[/* shader_program/3-1 */0].view,       1, 0, cfp (*camera).view);
-    glUniformMatrix4fv(camera_uniform[/* shader_program/3-1 */0].projection, 1, 0, cfp (*camera).projection);
-    glUniform3fv      (camera_uniform[/* shader_program/3-1 */0].pos,        1,    cfp (*camera).pos);
+    glUniformMatrix4fv(camera_uniform.model,      1, 0, cfp (*camera).model);
+    glUniformMatrix4fv(camera_uniform.view,       1, 0, cfp (*camera).view);
+    glUniformMatrix4fv(camera_uniform.projection, 1, 0, cfp (*camera).projection);
+    glUniform3fv      (camera_uniform.pos,        1,    cfp (*camera).pos);
 
     last_cam = *camera;
 }

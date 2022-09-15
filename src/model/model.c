@@ -19,7 +19,6 @@ struct model loadModel(const char *path, int flags)
     model.n_meshes = scene->mNumMeshes;
     model.meshes = malloc(sizeof(struct mesh)*model.n_meshes);
 
-    struct mesh m;
     for (int i=0; i<model.n_meshes; i++)                                        // getting mesh information
     {
         struct aiMesh *ai_mesh = scene->mMeshes[i];

@@ -34,6 +34,7 @@ struct window initWindow(int window_w, int window_h, char *title, void **fn)
         exit(EXIT_FAILURE);
     }
     glfwMakeContextCurrent(window.glfw_window);                                  // callbacks for window
+    glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glfwSetErrorCallback           (glfwErrorCallback);  
     glfwSetFramebufferSizeCallback (window.glfw_window, framebuffer_size_callback);

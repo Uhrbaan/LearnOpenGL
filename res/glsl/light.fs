@@ -61,7 +61,7 @@ vec3 directionalLight(Directional_light light, vec3 normal, vec3 view_direction)
     vec3 reflect_direction = reflect(-light_dir, normal);
     specular =                                                                  // specular
         light.specular *
-        pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
+        pow(max(dot(view_direction, reflect_direction), 0.0), 32 /* temp, replace with whininess value */) *
         texture(material.textures[2], texture_coo).rgb;
 
     return (ambient + diffuse + specular);
@@ -91,7 +91,7 @@ vec3 pointLight(Point_light light, vec3 normal, vec3 frag_pos, vec3 view_directi
     vec3 reflect_direction = reflect(-light_dir, normal);
     specular =                                                                  // specular
         light.specular *
-        pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
+        pow(max(dot(reflect_direction, view_direction), 0.0), 32 /* temp, replace with whininess value */) *
         texture(material.textures[2], texture_coo).rgb *
         attenuation;
 
@@ -128,7 +128,7 @@ vec3 spot_Light(Spot_light light, vec3 normal, vec3 frag_pos, vec3 view_directio
     vec3 reflect_direction = reflect(-light_dir, normal);
     specular =                                                                  // specular
         light.specular *
-        pow(max(dot(reflect_direction, view_direction), 0.0), material.shininess) *
+        pow(max(dot(reflect_direction, view_direction), 0.0), 32 /* temp, replace with whininess value */) *
         texture(material.textures[2], texture_coo).rgb *
         attenuation *
         intensity;
@@ -153,4 +153,5 @@ void main()
         result += spot_Light(spot_light[i], norm, frag_pos, view_direction);
 
     FragColor = vec4(result, 1.0);
+    // FragColor = vec4(texture(material.textures[1], texture_coo).rgb, 1.0); // works
 }

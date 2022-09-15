@@ -73,7 +73,6 @@ struct material extractMaterial(const struct aiMesh *mesh,
     struct aiString      ai_str = {0};
     struct material    material = {0};
     char texture_path[PATH_MAX] = {0};
-    unsigned int max;
     for (int i=1; i<SUPPORTED_TEXTURE_TYPES_N; i++)
     {
         ai_str.data[0] = '\0'; // terminate str through first char
@@ -97,13 +96,15 @@ struct material extractMaterial(const struct aiMesh *mesh,
                 glGetUniformLocation(material_list.shader_program, uniform_name);
         }
     }
-
-    max = 1;                                                                    // shininess & shininess_strength
+/* TODO add shininess values to models, right now set to static 32
+    float shininess; 
     aiGetMaterialFloatArray(ai_mat, AI_MATKEY_SHININESS,
-        (float*)&material.shininess, &max);
-    max = 1;
-    aiGetMaterialFloatArray(ai_mat, AI_MATKEY_SHININESS_STRENGTH,
-        (float*)&material.strenght, &max);
+        (float*)&shininess, (unsigned int *)0x0);
+    material.shininess = shininess * (128.f/4000.f);                            // correct range of wavefront 
+                                                                                // [0, 4000] -> [0, 128]
+    // aiGetMaterialFloatArray(ai_mat, AI_MATKEY_SHININESS_STRENGTH, -> does not exist in mtl
+        // (float*)&material.strenght, (unsigned int *)0x0);
+ */
 
     unsigned int material_index = addMaterial(material);
     if (material_list_index!=NULL) *material_list_index = material_index;

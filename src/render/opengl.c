@@ -22,6 +22,7 @@ int initOpenGL(int x, int y, int w, int h, void* fn_proc_adress)
     }
     glEnable              ( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( MessageCallback, 0 );
+    glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
     glViewport(x, y, w, h);
     return 0;
 }
