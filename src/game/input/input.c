@@ -67,6 +67,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
                         state.camera.yaw, 
                         state.camera.roll
                         );
+                    break;
+
+                case GLFW_KEY_LEFT_BRACKET:
+                    if (action == GLFW_PRESS)
+                        glm_mat4_scale(state.camera.model, 1.2f);
+                    break;
+                case GLFW_KEY_RIGHT_BRACKET:
+                    if (action == GLFW_PRESS)
+                        glm_mat4_scale(state.camera.model, 1.f/1.2f);
+                    break;
                 
                 default:
                     break;

@@ -86,7 +86,7 @@ inline unsigned int loadShaderProgram(const char *vs_path, const char *fs_path)
 
 #include <stdbool.h>
 #include "stb_image.h"
-unsigned int loadGLTexture(const char *path) // TODO make function faster
+unsigned int loadGLTexture(const char *path)
 {
     printf("loading texture %s...\n", path);
     stbi_set_flip_vertically_on_load(true);
@@ -139,17 +139,6 @@ unsigned int loadGLTexture(const char *path) // TODO make function faster
     free(data);
 
     return texture;
-}
-
-// TODO optimise to not search uniform location everytime
-void useTexture(int index, char *uniform_name, unsigned int shader_program, 
-                unsigned int gl_id)
-{
-    glActiveTexture(GL_TEXTURE0 + index);
-    glUseProgram(shader_program);
-    unsigned int u_loc = glGetUniformLocation(shader_program, uniform_name);
-    glUniform1i(u_loc, index); // link to n-th sampler
-    glBindTexture(GL_TEXTURE_2D, gl_id);
 }
 
 void drawElements(unsigned int shader_program, unsigned int vao, int n_indices)

@@ -23,7 +23,6 @@ struct model loadModel(const char *path, int flags)
     {
         struct aiMesh *ai_mesh = scene->mMeshes[i];
         model.meshes[i] = generateMesh(ai_mesh, scene, directory);
-        // model.meshes[i] = m;
     }
 
     printMaterialList();

@@ -152,7 +152,7 @@ void initShading(unsigned int shader_program)
     spot_light = 
         calloc(spot_light_n, sizeof(struct spot_light));
     assert(spot_light);
-    for (i=0; i<directional_light_n; i++) updatespotLight(i, shader_program);
+    for (i=0; i<directional_light_n; i++) updateSpotLight(i, shader_program);
 }
 
 /******************************* update Lights ********************************/
@@ -190,7 +190,7 @@ void updatePointLight(unsigned int index, unsigned int shader_program)
     glUniform1f (point_light_uniform[index].quadratic,
                  point_light[index].quadratic);
 }
-void updatespotLight(unsigned int index, unsigned int shader_program)
+void updateSpotLight(unsigned int index, unsigned int shader_program)
 {
     glUseProgram(shader_program);
 
@@ -467,4 +467,43 @@ void printTextureList()
     printf("└──────────────┴────────────┴──────────────┘\n");
 }
 
-/******************************************************************************/
+/******************************* Create Lights ********************************/
+
+void createDirectionalLight(int index, 
+                            vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular)
+{
+    glm_vec3_copy(pos,      directional_light[index].direction);
+    glm_vec3_copy(ambient,  directional_light[index].ambient);
+    glm_vec3_copy(diffuse,  directional_light[index].diffuse);
+    glm_vec3_copy(specular, directional_light[index].specular);
+}
+
+void createPointLight(int index, 
+                      vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular,
+                      float linear, float quadratic)
+{
+    glm_vec3_copy(pos,      point_light[index].position);
+    glm_vec3_copy(ambient,  point_light[index].ambient);
+    glm_vec3_copy(diffuse,  point_light[index].diffuse);
+    glm_vec3_copy(specular, point_light[index].specular);
+    point_light[index].constant  = 1.0f;
+    point_light[index].linear    = linear;
+    point_light[index].quadratic = quadratic;
+}
+
+void createSpotLight(int index, 
+                     vec3 pos, vec3 direction, vec3 ambient, vec3 diffuse, vec3 specular,
+                     float linear, float quadratic,
+                     float cutoff_deg, float outer_cutoff_deg)
+{
+    glm_vec3_copy(pos,       spot_light[index].position);
+    glm_vec3_copy(direction, spot_light[index].direction);
+    glm_vec3_copy(ambient,   spot_light[index].ambient);
+    glm_vec3_copy(diffuse,   spot_light[index].diffuse);
+    glm_vec3_copy(specular,  spot_light[index].specular);
+    spot_light[index].constant  = 1.0f;
+    spot_light[index].linear    = linear;
+    spot_light[index].quadratic = quadratic;
+    spot_light[index].cutoff       = cos(glm_rad(cutoff_deg));
+    spot_light[index].outer_cutoff = cos(glm_rad(outer_cutoff_deg));
+}

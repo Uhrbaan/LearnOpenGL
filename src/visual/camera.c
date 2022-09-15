@@ -9,8 +9,8 @@
 struct camera_uniform {unsigned int model, view, projection, pos;};
 
 static struct camera last_cam = {0};
-#define MAX_SHADER_PROGRAMS 100
-static struct camera_uniform camera_uniform = {0};
+#define MAX_SHADER_PROGRAMS 10
+static struct camera_uniform camera_uniform[MAX_SHADER_PROGRAMS] = {{0}};
 
 const float NEAR_PLANE = 0.1f, FAR_PLANE = 100.0f;
 
@@ -20,6 +20,7 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
                          unsigned int sp)
 {
     struct camera camera = {0};
+
     camera.ortho  = ortho_projection;
     camera.ratio  = (float)window_w/(float)window_h;
     glm_vec3_copy   (cam_pos, camera.pos);
@@ -30,20 +31,24 @@ struct camera initCamera(bool ortho_projection, int window_w, int window_h,
     camera.yaw    = yaw; 
     camera.pitch  = pitch;
     camera.roll   = roll;
-
     glm_mat4_identity(camera.model);
     glm_mat4_identity(camera.view);
     glm_mat4_identity(camera.projection);
 
-    camera_uniform.model      = glGetUniformLocation(sp, "model");
-    camera_uniform.view       = glGetUniformLocation(sp, "view");
-    camera_uniform.projection = glGetUniformLocation(sp, "projection");
-    camera_uniform.pos        = glGetUniformLocation(sp, "camera_position");
+    initOnlyCameraUniform(sp);
 
     return camera;
 }
 
-void updateCamera(struct camera *camera, unsigned int shader_program)
+void initOnlyCameraUniform(unsigned int sp)
+{
+    camera_uniform[sp/3].model      = glGetUniformLocation(sp, "model");
+    camera_uniform[sp/3].view       = glGetUniformLocation(sp, "view");
+    camera_uniform[sp/3].projection = glGetUniformLocation(sp, "projection");
+    camera_uniform[sp/3].pos        = glGetUniformLocation(sp, "camera_position");
+}
+
+void updateCamera(struct camera *camera, unsigned int sp)
 {
     if (!memcmp(&last_cam, camera, sizeof(struct camera))) return;
 
@@ -63,16 +68,14 @@ void updateCamera(struct camera *camera, unsigned int shader_program)
                            (*camera).projection);
 
     last_cam = *camera;
-    glUseProgram(shader_program);
-    glUniformMatrix4fv(camera_uniform.model,      1, 0, cfp (*camera).model);
-    glUniformMatrix4fv(camera_uniform.view,       1, 0, cfp (*camera).view);
-    glUniformMatrix4fv(camera_uniform.projection, 1, 0, cfp (*camera).projection);
-    glUniform3fv      (camera_uniform.pos,        1,    cfp (*camera).pos);
+    glUseProgram(sp);
+    glUniformMatrix4fv(camera_uniform[sp/3].model,      1, 0, cfp (*camera).model);
+    glUniformMatrix4fv(camera_uniform[sp/3].view,       1, 0, cfp (*camera).view);
+    glUniformMatrix4fv(camera_uniform[sp/3].projection, 1, 0, cfp (*camera).projection);
+    glUniform3fv      (camera_uniform[sp/3].pos,        1,    cfp (*camera).pos);
 
     last_cam = *camera;
 }
-// FIXME corrupted model showing -> indices ? vao ?
-
 /** NOTE
  * if you see shader programs multiplied or divided by 3, it is because shader
  * programs (the way they are loaded by this implementation) increment by 3

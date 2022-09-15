@@ -53,9 +53,18 @@ extern unsigned int spot_light_n;
 extern struct spot_light *spot_light;
 
 void initShading            (unsigned int shader_program);
+void createDirectionalLight(int index, 
+                            vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular);
+void createPointLight      (int index, 
+                            vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular,
+                            float linear, float quadratic);
+void createSpotLight       (int index, vec3 pos, vec3 direction, 
+                            vec3 ambient, vec3 diffuse, vec3 specular,
+                            float linear, float quadratic,
+                            float cutoff_deg, float outer_cutoff_deg);
 void updateDirectionalLight (unsigned int index, unsigned int shader_program);
 void updatePointLight       (unsigned int index, unsigned int shader_program);
-void updatespotLight        (unsigned int index, unsigned int shader_program);
+void updateSpotLight        (unsigned int index, unsigned int shader_program);
 
 #define SUPPORTED_TEXTURE_TYPES_N 5 // max 20
 struct material                                                                 // material
