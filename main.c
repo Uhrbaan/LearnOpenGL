@@ -34,6 +34,9 @@ int main(int argc, const char *argv[])
                   aiProcess_Triangulate | aiProcess_FlipUVs),
     wood = 
         loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/firstmodelwblender/untitled.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs),
+    garden = 
+        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/garden/garden.obj",
                   aiProcess_Triangulate | aiProcess_FlipUVs);
 
     createDirectionalLight(0,
@@ -75,17 +78,25 @@ int main(int argc, const char *argv[])
         // updateSpotLight(0, sp);
 
         glEnable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT | 
+        glClear(GL_COLOR_BUFFER_BIT |  // corrupted size vs. prev_size : ERROR
                 GL_DEPTH_BUFFER_BIT | 
                 GL_STENCIL_BUFFER_BIT);
 
         glStencilMask(0x00); // dont update stencil buffer
+        
         glm_mat4_identity(state.camera.model);
         updateCamera(&state.camera, sp);
         drawModel(model, sp);
 
+        glm_mat4_identity(state.camera.model);
+        glm_translate(state.camera.model, (vec3){9.3f, 2.1f, 6.0f});
+        updateCamera(&state.camera, sp);
+        drawModel(garden, sp);
+
         glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
         glStencilMask(0xff); // write to stencil buffer
+
+        glm_mat4_identity(state.camera.model);
         glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
         glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
         updateCamera(&state.camera, sp);
@@ -94,6 +105,7 @@ int main(int argc, const char *argv[])
         glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
         glStencilMask(0x00); // do not update the buffer
         glDisable(GL_DEPTH_TEST); // disable buffer depth testing
+
         // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
         glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
         updateCamera(&state.camera, outline);
