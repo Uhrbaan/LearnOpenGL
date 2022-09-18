@@ -62,3 +62,5 @@ unsigned int generateVao(float        *vertices, int vertices_n,
                          unsigned int *vbo_out, unsigned int *ebo_out);
 
 #endif
+
+// TODO support colors included in model without a texture

@@ -25,11 +25,15 @@ int main(int argc, const char *argv[])
 
     initOnlyCameraUniform(outline);
     
-    struct model model = {0}, scaled_model = {0};
-    model = loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene.obj",
-                  aiProcess_Triangulate | aiProcess_FlipUVs);
+    struct model 
+    model = 
+        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs),
     scaled_model = 
         loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene_scalded.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs),
+    wood = 
+        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/firstmodelwblender/untitled.obj",
                   aiProcess_Triangulate | aiProcess_FlipUVs);
 
     createDirectionalLight(0,
@@ -49,6 +53,13 @@ int main(int argc, const char *argv[])
         (vec3){ 1.0f, 1.0f, 1.0f}, 0.045f, 0.0075f, 20.0f, 25.0f);
     updateSpotLight(0, sp);
 
+    // global opengl state
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
     while(!glfwWindowShouldClose(state.window.glfw_window))
     {
         float current_frame = glfwGetTime();
@@ -64,24 +75,32 @@ int main(int argc, const char *argv[])
         // updateSpotLight(0, sp);
 
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_STENCIL_TEST);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        glStencilMask(0x00); // don’t update stencil buffer while drawing the floor
+        glClear(GL_COLOR_BUFFER_BIT | 
+                GL_DEPTH_BUFFER_BIT | 
+                GL_STENCIL_BUFFER_BIT);
+
+        glStencilMask(0x00); // dont update stencil buffer
+        glm_mat4_identity(state.camera.model);
         updateCamera(&state.camera, sp);
         drawModel(model, sp);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-        drawModel(model, sp);
 
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
-        glDisable(GL_DEPTH_TEST);
+        glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
+        glStencilMask(0xff); // write to stencil buffer
+        glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
+        glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
+        updateCamera(&state.camera, sp);
+        drawModel(wood, sp);
+
+        glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
+        glStencilMask(0x00); // do not update the buffer
+        glDisable(GL_DEPTH_TEST); // disable buffer depth testing
+        // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
+        glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
         updateCamera(&state.camera, outline);
-        drawModel(scaled_model, outline);
-        glStencilMask(0xFF);
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glEnable(GL_DEPTH_TEST);
+        drawModel(wood, outline);
+
+        glStencilMask(0xff); // reset stencil buffer
+        glStencilFunc(GL_ALWAYS, 1, 0xff);
 
         glfwSwapBuffers(state.window.glfw_window);
         msleep(16);
@@ -91,3 +110,7 @@ int main(int argc, const char *argv[])
 }
 
 // TODO stencil buffer
+
+// TODO load 2 models at the same time on screen
+
+// T*R*S

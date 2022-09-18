@@ -27,13 +27,15 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
     return m;
 }
 
+/* TODO change the way things are drawn (outside of this file) and handle more
+ * or less uniform inforamtion based on ?flags? */
 void drawMesh(struct mesh m, unsigned int shader_program)
 {
     for (int i=0; i<SUPPORTED_TEXTURE_TYPES_N; i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         glUseProgram(shader_program);
-        if (m.material.texture_id[i])
+        if (m.material.texture_id[i]/*  && shader_program < 4 */)
             glUniform1i(m.material.texture_uniform[i], i); // link to n-th sampler
         glBindTexture(GL_TEXTURE_2D, m.material.texture_id[i]);
     }

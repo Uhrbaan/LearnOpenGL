@@ -76,6 +76,7 @@ void updateCamera(struct camera *camera, unsigned int sp)
 
     last_cam = *camera;
 }
+
 /** NOTE
  * if you see shader programs multiplied or divided by 3, it is because shader
  * programs (the way they are loaded by this implementation) increment by 3

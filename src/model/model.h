@@ -11,6 +11,7 @@
 struct model
 {
     struct mesh *meshes; int n_meshes;
+    // vec3 translate, rotate, scale; // for later
     char *directory;
 };
 
