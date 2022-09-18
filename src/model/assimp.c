@@ -11,8 +11,8 @@ const struct aiScene *loadScene(const char *path, int flags)
         scene->mNumMeshes <= 0)
     {
         aiReleaseImport(scene);
-        fprintf(stderr, ERROR_MSG_LOG("assimp could not load file", 
-                                       aiGetErrorString()));
+        fprintf(stderr, ERROR_MSG_LOG("assimp could not load file", "%s"),
+                                       aiGetErrorString());
         return NULL;
     }
     return scene;

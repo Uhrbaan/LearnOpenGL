@@ -53,8 +53,8 @@ extern unsigned int spot_light_n;
 extern struct spot_light *spot_light;
 
 void initShading            (unsigned int shader_program);
-void createDirectionalLight(int index, 
-                            vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular);
+void createDirectionalLight(int index, vec3 direction, 
+                            vec3 ambient, vec3 diffuse, vec3 specular);
 void createPointLight      (int index, 
                             vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular,
                             float linear, float quadratic);
@@ -73,7 +73,6 @@ struct material                                                                 
                  texture_uniform[SUPPORTED_TEXTURE_TYPES_N];
     float shininess, strenght;
 };
-extern struct material material; // does it have any use ?
 struct material_list
 {
     unsigned int elements, max_elements, shader_program;

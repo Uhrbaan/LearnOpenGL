@@ -64,3 +64,5 @@ unsigned int generateVao(float        *vertices, int vertices_n,
 #endif
 
 // TODO support colors included in model without a texture
+// TODO support different parameters depending on shader
+// TODO customize rendering depending on shader

@@ -25,9 +25,6 @@ struct model loadModel(const char *path, int flags)
         model.meshes[i] = generateMesh(ai_mesh, scene, directory);
     }
 
-    printMaterialList();
-    printTextureList();
-
     return model;
 }
 

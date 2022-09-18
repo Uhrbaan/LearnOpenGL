@@ -470,9 +470,9 @@ void printTextureList()
 /******************************* Create Lights ********************************/
 
 void createDirectionalLight(int index, 
-                            vec3 pos, vec3 ambient, vec3 diffuse, vec3 specular)
+                            vec3 direction, vec3 ambient, vec3 diffuse, vec3 specular)
 {
-    glm_vec3_copy(pos,      directional_light[index].direction);
+    glm_vec3_copy(direction,directional_light[index].direction);
     glm_vec3_copy(ambient,  directional_light[index].ambient);
     glm_vec3_copy(diffuse,  directional_light[index].diffuse);
     glm_vec3_copy(specular, directional_light[index].specular);

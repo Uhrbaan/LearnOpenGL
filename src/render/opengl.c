@@ -21,7 +21,7 @@ int initOpenGL(int x, int y, int w, int h, void* fn_proc_adress)
         return 1;
     }
     glEnable              ( GL_DEBUG_OUTPUT );
-    // glDebugMessageCallback( MessageCallback, 0 );                               // FIXME all the debug errors
+    glDebugMessageCallback( MessageCallback, 0 );                               // FIXME all the debug errors
     glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
     glViewport(x, y, w, h);
     return 0;
@@ -64,7 +64,7 @@ unsigned int createShaderProgram(unsigned int vs, unsigned int fs)
     {
         char info_log[512];
         glGetShaderInfoLog(program, 512, NULL, info_log);
-        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", info_log));
+        fprintf(stderr, ERROR_MSG_LOG("failed shader linking", "%s"), info_log);
         program = 0;
     }
     // freeing shaders
@@ -88,9 +88,7 @@ inline unsigned int loadShaderProgram(const char *vs_path, const char *fs_path)
 #include "stb_image.h"
 unsigned int loadGLTexture(const char *path)
 {
-    printf("loading texture %s...\n", path);
     stbi_set_flip_vertically_on_load(true);
-    // loading texture
     int w, h, channels;
     unsigned int texture;
     unsigned char *data = NULL;
@@ -107,19 +105,13 @@ unsigned int loadGLTexture(const char *path)
     unsigned int format=0;
     switch (channels)
     {
-        case 1:
-            format = GL_RED;
-            break;
-        case 3:
-            format = GL_RGB;
-            break;
-        case 4:
-            format = GL_RGBA;
-            break;
-        default:
-            fprintf(stderr, TERM_COL_ERROR("error:")
-                            TERM_COL_INFO("color format is invalid:") 
-                    "%d number of channels", channels);
+        case 1: format = GL_RED;  break;
+        case 3: format = GL_RGB;  break;
+        case 4: format = GL_RGBA; break;
+        default: 
+            fprintf(stderr, ERROR_MSG_LOG("unknown channel number", 
+                                          "%d number of channels"),
+                    channels);
             break;
     }
     glGenTextures(1, &texture);

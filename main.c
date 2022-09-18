@@ -40,8 +40,8 @@ int main(int argc, const char *argv[])
                   aiProcess_Triangulate | aiProcess_FlipUVs);
 
     createDirectionalLight(0,
-        (vec3){-0.2f, -1.0f, -0.3f}, (vec3){ 0.2f,  0.2f,  0.2f},
-        (vec3){ 0.7f,  0.7f,  0.6f}, (vec3){ 0.7f,  0.7f,  0.6f});
+        (vec3){-0.2f, -1.0f, -0.3f}, (vec3){ 0.55f,  0.55f,  0.5f},
+        (vec3){ 0.9f,  0.9f,  0.9f}, (vec3){ 1.0f,  1.0f,  1.0f});
     updateDirectionalLight(0, sp);
 
     createPointLight(0,
@@ -56,12 +56,44 @@ int main(int argc, const char *argv[])
         (vec3){ 1.0f, 1.0f, 1.0f}, 0.045f, 0.0075f, 20.0f, 25.0f);
     updateSpotLight(0, sp);
 
+    float grass_vert[] = {
+        // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+        0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+        0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+        1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+        1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+    vec3 grass_pos[] = {
+        {-1.5f, 0.0f, -0.48f},
+        { 1.5f, 0.0f,  0.51f},
+        { 0.0f, 0.0f,  0.7f},
+        {-0.3f, 0.0f, -2.3f},
+        { 0.5f, 0.0f, -0.6f}
+    };
+    unsigned int grass_vao, grass_vbo, grass_text, grass_sp;
+    glGenVertexArrays(1, &grass_vao);
+    glGenBuffers(1, &grass_vbo);
+    glBindVertexArray(grass_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, grass_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(grass_vert), grass_vert, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*5, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(float)*5, (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
+    grass_text = loadGLTexture("/home/uhrbaan/Documents/code/com.learnopengl/res/textures/grass.png");
+    grass_sp   = loadShaderProgram("res/glsl/grass.vs", "res/glsl/grass.fs");
+
     // global opengl state
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    // glEnable(GL_STENCIL_TEST);
+    // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    // glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     while(!glfwWindowShouldClose(state.window.glfw_window))
     {
@@ -78,8 +110,7 @@ int main(int argc, const char *argv[])
         // updateSpotLight(0, sp);
 
         glEnable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT |  // corrupted size vs. prev_size : ERROR
-                GL_DEPTH_BUFFER_BIT | 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | 
                 GL_STENCIL_BUFFER_BIT);
 
         glStencilMask(0x00); // dont update stencil buffer
@@ -93,26 +124,37 @@ int main(int argc, const char *argv[])
         updateCamera(&state.camera, sp);
         drawModel(garden, sp);
 
-        glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
-        glStencilMask(0xff); // write to stencil buffer
+        glBindVertexArray(grass_vao);
+        glBindTexture(GL_TEXTURE_2D, grass_text);
+        for (int i=0; i<sizeof(grass_pos)/sizeof(vec3); i++)
+        {
+            glm_mat4_identity(state.camera.model);
+            glm_translate(state.camera.model, grass_pos[i]);
+            updateCamera(&state.camera, grass_sp);
+            glUseProgram(grass_sp);
+            glDrawArrays(GL_TRIANGLES, 0, sizeof(grass_pos)/sizeof(vec3));
+        }
 
-        glm_mat4_identity(state.camera.model);
-        glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
-        glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
-        updateCamera(&state.camera, sp);
-        drawModel(wood, sp);
+        // glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
+        // glStencilMask(0xff); // write to stencil buffer
 
-        glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
-        glStencilMask(0x00); // do not update the buffer
-        glDisable(GL_DEPTH_TEST); // disable buffer depth testing
+        // glm_mat4_identity(state.camera.model);
+        // glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
+        // glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
+        // updateCamera(&state.camera, sp);
+        // drawModel(wood, sp);
 
-        // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
-        glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
-        updateCamera(&state.camera, outline);
-        drawModel(wood, outline);
+        // glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
+        // glStencilMask(0x00); // do not update the buffer
+        // glDisable(GL_DEPTH_TEST); // disable buffer depth testing
 
-        glStencilMask(0xff); // reset stencil buffer
-        glStencilFunc(GL_ALWAYS, 1, 0xff);
+        // // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
+        // glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
+        // updateCamera(&state.camera, outline);
+        // drawModel(wood, outline);
+
+        // glStencilMask(0xff); // reset stencil buffer
+        // glStencilFunc(GL_ALWAYS, 1, 0xff);
 
         glfwSwapBuffers(state.window.glfw_window);
         msleep(16);
@@ -122,7 +164,7 @@ int main(int argc, const char *argv[])
 }
 
 // TODO stencil buffer
-
+// FIXME corrupted size vs. prev_size shows when quitting
 // TODO load 2 models at the same time on screen
 
 // T*R*S

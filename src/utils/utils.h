@@ -8,8 +8,8 @@
 #define TERM_COL_SUCCESS(msg)   "\x1b[32;1m" msg "\x1b[0;0m"
 #define TERM_COL_INFO(msg)      "\x1b[35;1m" msg "\x1b[0;0m"
 
-#define ERROR_MSG_LOG(msg, log) TERM_COL_ERROR("error")": "TERM_COL_INFO("%s") \
-                                ": %s\n", msg, log
+#define ERROR_MSG_LOG(error, info) \
+    TERM_COL_ERROR("error")": "TERM_COL_INFO(error)": "info
 
 #define MODEL_CUBE_wTEXTURE    {-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,\
                                  0.5f, -0.5f, -0.5f,  1.0f, 0.0f,\
