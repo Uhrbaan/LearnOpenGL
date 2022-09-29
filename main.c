@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <assimp/cimport.h>
 #include "src/global.h"
-#include "src/render/shading.h"
+#include "src/render/shading/shading.h"
 #include "src/game/input/input.h"
 
 float last_frame = 0;
@@ -24,19 +24,19 @@ int main(int argc, const char *argv[])
                    sp);
 
     initOnlyCameraUniform(outline);
-    
-    struct model 
+
+    struct model model, scaled_model, wood, garden;
     model = 
-        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene.obj",
-                  aiProcess_Triangulate | aiProcess_FlipUVs),
+        loadModel("res/models/self-made/small-scene/scene.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs);
     scaled_model = 
-        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/small-scene/scene_scalded.obj",
-                  aiProcess_Triangulate | aiProcess_FlipUVs),
+        loadModel("res/models/self-made/small-scene/scene_scalded.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs);
     wood = 
-        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/firstmodelwblender/untitled.obj",
-                  aiProcess_Triangulate | aiProcess_FlipUVs),
+        loadModel("res/models/self-made/firstmodelwblender/untitled.obj",
+                  aiProcess_Triangulate | aiProcess_FlipUVs);
     garden = 
-        loadModel("/home/uhrbaan/Documents/code/com.learnopengl/res/models/self-made/garden/garden.obj",
+        loadModel("res/models/self-made/garden/garden.obj",
                   aiProcess_Triangulate | aiProcess_FlipUVs);
 
     createDirectionalLight(0,
@@ -103,7 +103,7 @@ int main(int argc, const char *argv[])
 
         glfwPollEvents();
         movement(state.window.glfw_window);
-
+        
         // updateCamera(&state.camera, sp);
         // glm_vec3_copy(state.camera.pos, spot_light[0].position);
         // glm_vec3_copy(state.camera.z,   spot_light[0].direction);
@@ -135,26 +135,26 @@ int main(int argc, const char *argv[])
             glDrawArrays(GL_TRIANGLES, 0, sizeof(grass_pos)/sizeof(vec3));
         }
 
-        // glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
-        // glStencilMask(0xff); // write to stencil buffer
+        glStencilFunc(GL_ALWAYS, 1, 0xff); // update stencil mask with what is drawn
+        glStencilMask(0xff); // write to stencil buffer
 
-        // glm_mat4_identity(state.camera.model);
-        // glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
-        // glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
-        // updateCamera(&state.camera, sp);
-        // drawModel(wood, sp);
+        glm_mat4_identity(state.camera.model);
+        glm_translate(state.camera.model, (vec3){-5.0f, 1.2f, -2.1f});
+        glm_scale(state.camera.model, (vec3){3.f, 4.f, 3.f});
+        updateCamera(&state.camera, sp);
+        drawModel(wood, sp);
 
-        // glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
-        // glStencilMask(0x00); // do not update the buffer
-        // glDisable(GL_DEPTH_TEST); // disable buffer depth testing
+        glStencilFunc(GL_NOTEQUAL, 1, 0xff); // draw what is not equal to 1 in the buffer
+        glStencilMask(0x00); // do not update the buffer
+        glDisable(GL_DEPTH_TEST); // disable buffer depth testing
 
-        // // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
-        // glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
-        // updateCamera(&state.camera, outline);
-        // drawModel(wood, outline);
+        // glm_translate(state.camera.model, (vec3){-2.0f, 0.f, 0.f});
+        glm_scale(state.camera.model, (vec3){1.01f, 1.01f, 1.01f});
+        updateCamera(&state.camera, outline);
+        drawModel(wood, outline);
 
-        // glStencilMask(0xff); // reset stencil buffer
-        // glStencilFunc(GL_ALWAYS, 1, 0xff);
+        glStencilMask(0xff); // reset stencil buffer
+        glStencilFunc(GL_ALWAYS, 1, 0xff);
 
         glfwSwapBuffers(state.window.glfw_window);
         msleep(16);
@@ -163,8 +163,16 @@ int main(int argc, const char *argv[])
     return 0; 
 }
 
-// TODO stencil buffer
-// FIXME corrupted size vs. prev_size shows when quitting
-// TODO load 2 models at the same time on screen
+/********************************* NOTES ***************************************
 
-// T*R*S
+TODO load transparent textures on screen
+TODO create system to render just simple textures like grass sprites
+
+T*R*S
+
+TODO changer système de rendu
+il faut prendre le temps de redisigner la manière de faire le rendu des
+différentes choses affichées. ex: modèles 3d & planes 2d
+
+
+*/

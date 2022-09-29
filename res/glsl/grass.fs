@@ -8,7 +8,7 @@ uniform sampler2D texture1;
 void main()
 {             
     vec4 texColor = texture(texture1, uv);
-    if(texColor.a < 0.1)
+    if(texColor.a < 0.1) // if not discarded will repeat texture according to params
         discard;
     FragColor = texColor;
 }

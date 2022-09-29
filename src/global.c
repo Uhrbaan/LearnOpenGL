@@ -1,6 +1,6 @@
 #include "global.h"
 #include "game/input/input.h"
-#include "render/shading.h"
+#include "render/shading/shading.h"
 #include "window/window.h"
 
 struct game_data state;

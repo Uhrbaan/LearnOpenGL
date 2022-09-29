@@ -1,7 +1,7 @@
 #include "opengl.h"
 #include "../utils/utils.h"
 #include <assert.h>
-#include "shading.h"
+#include "shading/shading.h"
 // #include <glad/gl.h>
 
 void GLAPIENTRY
@@ -21,7 +21,7 @@ int initOpenGL(int x, int y, int w, int h, void* fn_proc_adress)
         return 1;
     }
     glEnable              ( GL_DEBUG_OUTPUT );
-    glDebugMessageCallback( MessageCallback, 0 );                               // FIXME all the debug errors
+    glDebugMessageCallback( MessageCallback, 0 );
     glClearColor(0.16f, 0.16f, 0.16f, 1.0f);
     glViewport(x, y, w, h);
     return 0;

@@ -4,7 +4,7 @@
 #include <cglm/cglm.h>
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
-#include "../render/shading.h" // for struct material
+#include "../render/shading/shading.h" // for struct material
 
 struct vertex  {vec3 pos, norm; vec2 uv;};
 struct texture {unsigned int gl_id; unsigned int type; char path[100];};

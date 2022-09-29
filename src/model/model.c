@@ -4,7 +4,7 @@
 
 struct model loadModel(const char *path, int flags)
 {
-    const struct aiScene *scene = loadScene(path, flags);                             // loading assimp scene
+    const struct aiScene *scene = loadScene(path, flags);                       // loading assimp scene
 
     if (!scene) return (struct model){0};
 
@@ -17,7 +17,7 @@ struct model loadModel(const char *path, int flags)
     strcpy(model.directory, directory);
 
     model.n_meshes = scene->mNumMeshes;
-    model.meshes = malloc(sizeof(struct mesh)*model.n_meshes);
+    model.meshes   = malloc(sizeof(struct mesh)*model.n_meshes);
 
     for (int i=0; i<model.n_meshes; i++)                                        // getting mesh information
     {

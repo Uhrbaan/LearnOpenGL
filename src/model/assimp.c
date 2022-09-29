@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "assimp.h"
 #include "../utils/utils.h"
+#include "../render/shading/shading.h"
+#include "../render/opengl.h"
 
 const struct aiScene *loadScene(const char *path, int flags)
 {
@@ -54,8 +56,6 @@ unsigned int extractIndices(const struct aiMesh *mesh, unsigned int **indices)
     return n_indi;
 }
 
-#include "../render/shading.h"
-#include "../render/opengl.h"
 // TODO support multiple textures per textures type
 struct material extractMaterial(const struct aiMesh *mesh, 
                                  const struct aiScene *scene,
@@ -73,14 +73,14 @@ struct material extractMaterial(const struct aiMesh *mesh,
     struct aiString      ai_str = {0};
     struct material    material = {0};
     char texture_path[PATH_MAX] = {0};
-    for (int i=1; i<SUPPORTED_TEXTURE_TYPES_N; i++)
+    for (int i=1; i<MAX_TEXTURE_TYPES; i++)
     {
-        ai_str.data[0] = '\0'; // terminate str through first char
+        ai_str.data[0] = '\0';
         aiGetMaterialTexture(ai_mat, i, 0, &ai_str,                             // get texture filename 
                              NULL, NULL, NULL, NULL, NULL, NULL);
-        if (ai_str.data[0] != '\0') // there is such texture file
+        if (ai_str.data[0] != '\0')
         {
-            snprintf(texture_path, PATH_MAX, "%s/%s", directory, ai_str.data);    // filepath of the texture
+            snprintf(texture_path, PATH_MAX, "%s/%s", directory, ai_str.data);  // filepath of the texture
             int texture_index = 
                 addTexture(i, 0, texture_path);
             if (!texture_list.texture_id[texture_index])                        // set glid if texture didn't exist
@@ -88,7 +88,7 @@ struct material extractMaterial(const struct aiMesh *mesh,
                     loadGLTexture(texture_path);
 
             // uniform location
-            char uniform_name[100]={0};
+            char uniform_name[100] = {0};
             snprintf(uniform_name, 100, "material.textures[%d]", i);
 
             material.texture_id[i] = texture_list.texture_id[texture_index];

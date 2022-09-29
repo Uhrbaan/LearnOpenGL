@@ -7,35 +7,6 @@
 
 extern unsigned int SHADER_PROGRAM_N;
 
-enum texture_type { // based on assimps list
-    none,
-    diffuse,
-    specular,
-    ambient,
-    emissive,
-    normals,
-    shininess,
-    opacity,
-    displacement,
-    lightmap,
-    reflection,
-    base_color,
-    normal_camera,
-    emission_color,
-    metalic,
-    diffuse_roughness,
-    ambient_occlusion,
-    sheen,
-    clear_coat,
-    transmission,
-    unknown
-};
-struct datawloc
-{
-    void *data;
-    unsigned int uniform_location, shader_program;
-};
-
 int initOpenGL(int x, int y, int w, int h, void* getProcAdress_fn);
 
 extern unsigned int loadShaderProgram(const char *vs_path, const char *fs_path);
@@ -63,6 +34,10 @@ unsigned int generateVao(float        *vertices, int vertices_n,
 
 #endif
 
-// TODO support colors included in model without a texture
-// TODO support different parameters depending on shader
-// TODO customize rendering depending on shader
+/*********************************** NOTES *************************************
+
+TODO support base colors
+TODO customize rendering depending on shader
+TODO create shader objects for different shaders
+
+*******************************************************************************/

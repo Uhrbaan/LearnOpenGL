@@ -27,11 +27,9 @@ struct mesh generateMesh(struct aiMesh *mesh, const struct aiScene *scene,
     return m;
 }
 
-/* TODO change the way things are drawn (outside of this file) and handle more
- * or less uniform inforamtion based on ?flags? */
 void drawMesh(struct mesh m, unsigned int shader_program)
 {
-    for (int i=0; i<SUPPORTED_TEXTURE_TYPES_N; i++)
+    for (int i=0; i<MAX_TEXTURE_TYPES; i++)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         glUseProgram(shader_program);
